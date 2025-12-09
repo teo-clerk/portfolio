@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import FloatingLines from './components/FloatingLines';
 import Terminal from './components/Terminal';
 

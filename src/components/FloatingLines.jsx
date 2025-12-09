@@ -455,6 +455,7 @@ export default function FloatingLines({
 }) {
 
   const containerRef = useRef(null);
+  console.log("FloatingLines mounted");
 
   const targetMouseRef = useRef(new Vector2(-1000, -1000));
 
@@ -467,6 +468,8 @@ export default function FloatingLines({
   const targetParallaxRef = useRef(new Vector2(0, 0));
 
   const currentParallaxRef = useRef(new Vector2(0, 0));
+
+  const rectRef = useRef(null);
 
 
   const getLineCount = waveType => {
@@ -510,6 +513,7 @@ export default function FloatingLines({
 
 
   useEffect(() => {
+    console.log("FloatingLines effect running", containerRef.current);
 
     if (!containerRef.current) return;
 
@@ -666,7 +670,7 @@ export default function FloatingLines({
     const clock = new Clock();
 
 
-    const rectRef = useRef(null);
+
 
     const setSize = () => {
       const el = containerRef.current;

@@ -2,30 +2,42 @@
   "hash": "d0f4beb8",
   "configHash": "10cb1e62",
   "lockfileHash": "c18e6f21",
-  "browserHash": "29dfb9a8",
+  "browserHash": "d400108a",
   "optimized": {
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "f6bd2965",
+      "fileHash": "81b4aea3",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "e39bdcaa",
+      "fileHash": "ecb17420",
       "needsInterop": true
     },
     "@react-three/fiber": {
       "src": "../../node_modules/@react-three/fiber/dist/react-three-fiber.esm.js",
       "file": "@react-three_fiber.js",
-      "fileHash": "4284dc4d",
+      "fileHash": "564f180b",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "4d959f07",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-4Q3UBPOX": {
-      "file": "chunk-4Q3UBPOX.js"
+    "chunk-XSUX4UHB": {
+      "file": "chunk-XSUX4UHB.js"
+    },
+    "chunk-SB2OHEXS": {
+      "file": "chunk-SB2OHEXS.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
     }
   }
 }
