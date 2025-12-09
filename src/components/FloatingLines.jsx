@@ -666,24 +666,21 @@ export default function FloatingLines({
     const clock = new Clock();
 
 
+    const rectRef = useRef(null);
+
     const setSize = () => {
-
       const el = containerRef.current;
-
       const width = el.clientWidth || 1;
-
       const height = el.clientHeight || 1;
-
 
       renderer.setSize(width, height, false);
 
-
       const canvasWidth = renderer.domElement.width;
-
       const canvasHeight = renderer.domElement.height;
-
       uniforms.iResolution.value.set(canvasWidth, canvasHeight, 1);
-
+      
+      // Cache rect on resize
+      rectRef.current = renderer.domElement.getBoundingClientRect();
     };
 
 
@@ -707,8 +704,9 @@ export default function FloatingLines({
       const y = event.clientY;
       const dpr = renderer.getPixelRatio();
 
-      // Calculate relative to the renderer (which is full screen)
-      const rect = renderer.domElement.getBoundingClientRect();
+      // Use cached rect
+      const rect = rectRef.current;
+      if (!rect) return;
       
       // Update mouse position for shader
       targetMouseRef.current.set(x * dpr, (rect.height - y) * dpr);
