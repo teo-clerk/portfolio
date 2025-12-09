@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teo Clerici | Terminal Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <!-- SVG Filter for Liquid Distortion -->
+    <svg class="svg-filters">
+        <defs>
+            <filter id="liquid-distortion">
+                <feTurbulence type="fractalNoise" baseFrequency="0.005 0.005" numOctaves="1" result="noise" seed="1"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div class="terminal-wrapper" id="terminal-wrapper">
+        <!-- Background Layer with Liquid Filter -->
+        <div class="terminal-glass"></div>
+
+        <!-- Content Layer (Clean) -->
+        <div class="terminal-content">
+            <div class="terminal-header">
+                <div class="traffic-lights">
+                    <div class="light red"></div>
+                    <div class="light yellow"></div>
+                    <div class="light green"></div>
+                </div>
+                <div class="terminal-title">visitor@teoclerici: ~</div>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+                <div class="output" id="output"></div>
+                <div class="input-line">
+                    <span class="prompt">visitor@teoclerici:~$</span>
+                    <input type="text" id="command-input" autocomplete="off" spellcheck="false" autofocus>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
