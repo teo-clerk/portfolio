@@ -42,11 +42,15 @@ const Terminal = () => {
     let animationId;
     
     const animate = () => {
-      frames += 0.002;
-      const val = 0.005 + Math.sin(frames) * 0.002;
-      if (turbulenceRef.current) {
-        turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
+      // Throttle: Only update DOM every 3rd frame (~20fps)
+      if (frames % 3 === 0) {
+        const val = 0.005 + Math.sin(frames * 0.002) * 0.002;
+        if (turbulenceRef.current) {
+          turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
+        }
       }
+      
+      frames++;
       animationId = requestAnimationFrame(animate);
     };
     
