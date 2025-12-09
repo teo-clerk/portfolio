@@ -356,7 +356,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   }
 
 
-  fragColor = vec4(col, 1.0);
+  // Calculate alpha based on brightness of the color
+  float alpha = length(col);
+  fragColor = vec4(col, alpha);
 
 }
 
@@ -526,7 +528,7 @@ export default function FloatingLines({
     camera.position.z = 1;
 
 
-    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new WebGLRenderer({ antialias: true, alpha: true });
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 

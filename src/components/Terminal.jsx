@@ -61,6 +61,11 @@ const Terminal = () => {
   // Tilt effect
   useEffect(() => {
     const handleMouseMove = (e) => {
+      if (window.innerWidth <= 768) {
+        const wrapper = document.getElementById('terminal-wrapper');
+        if (wrapper) wrapper.style.transform = 'none';
+        return;
+      }
       const x = e.clientX;
       const y = e.clientY;
       const centerX = window.innerWidth / 2;

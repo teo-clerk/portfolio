@@ -28,6 +28,7 @@ function App() {
         bendStrength={-0.5}
         interactive={!isMobile}
         parallax={true}
+        mixBlendMode={isMobile ? 'normal' : 'screen'}
       />
       
       {/* Layer 3: Terminal */}

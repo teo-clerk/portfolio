@@ -303,28 +303,29 @@ a:hover {
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .terminal-wrapper {
-        width: 100%;   /* Full width on mobile */
-        height: 100dvh; /* Full height on mobile */
+        width: 95%;
+        height: 85vh;
+        height: 85dvh; /* Reduced from 92dvh/100dvh to show background */
         max-width: none;
-        border-radius: 0; /* Remove corners for full immersion */
-        border: none; /* Remove border for cleaner look */
+        border-radius: 15px; /* Restored border radius */
+        overflow: hidden; /* Clip children to rounded corners */
     }
     
     .terminal-glass {
-        border-radius: 0;
+        border-radius: 15px;
         border: none;
     }
     
     .terminal-header {
-        border-radius: 0;
+        border-radius: 15px 15px 0 0;
     }
     
     .ascii-art {
         font-size: 0.4rem;
         margin-left: -2px;
         line-height: 1.1;
-        white-space: pre-wrap;
-        word-break: break-all;
+        white-space: pre; /* Prevent wrapping */
+        overflow-x: auto; /* Allow scrolling if needed */
     }
 
     /* Stack help on mobile */
