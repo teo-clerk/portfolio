@@ -82,6 +82,7 @@ Nature Photography, Mountain Hiking, AI & Machine Learning, Educational Technolo
 <span class="list-item"><strong>Phone:</strong> +34 615 451 338</span>
 <span class="list-item"><strong>Location:</strong> Venice, Italy</span>
 <span class="list-item"><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span>
+<span class="list-item"><strong>GitHub:</strong> <a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span>
 `
 };
 
@@ -102,6 +103,20 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="help">help</span><span class="help-desc">Show this help message</span></div>
   </div>
 </div>
+`;
+
+export const asciiArtFull = `
+<div class="ascii-art">
+████████╗███████╗ ██████╗      ██████╗██╗     ███████╗██████╗ ██╗ ██████╗██╗      ██╗██╗   ██╗██████╗  █████╗ ██████╗  ██████╗ 
+╚══██╔══╝██╔════╝██╔═══██╗    ██╔════╝██║     ██╔════╝██╔══██╗██║██╔════╝██║      ██║██║   ██║██╔══██╗██╔══██╗██╔══██╗██╔═══██╗
+   ██║   █████╗  ██║   ██║    ██║     ██║     █████╗  ██████╔╝██║██║     ██║      ██║██║   ██║██████╔╝███████║██║  ██║██║   ██║
+   ██║   ██╔══╝  ██║   ██║    ██║     ██║     ██╔══╝  ██╔══██╗██║██║     ██║ ██   ██║██║   ██║██╔══██╗██╔══██║██║  ██║██║   ██║
+   ██║   ███████╗╚██████╔╝    ╚██████╗███████╗███████╗██║  ██║██║╚██████╗██║ ╚█████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝╚██████╔╝
+   ╚═╝   ╚══════╝ ╚═════╝      ╚═════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝ ╚═════╝╚═╝  ╚════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ 
+</div>
+<div class="subtitle">AI & Data Science Student | Full Stack Developer</div>
+<div>Type <span class="command-highlight" data-cmd="help">'help'</span> to see available commands.</div>
+<br>
 `;
 
 export const asciiArt = `

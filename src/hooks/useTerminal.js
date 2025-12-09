@@ -1,20 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
-import { cvData, helpText, asciiArt, asciiArtMobile, commandsList } from '../data/cvData';
+import { cvData, helpText, asciiArt, asciiArtMobile, asciiArtFull, commandsList } from '../data/cvData';
+import { useTypewriter } from './useTypewriter';
 
 export const useTerminal = () => {
     const [history, setHistory] = useState([]);
     const [inputVal, setInputVal] = useState('');
     const [commandHistory, setCommandHistory] = useState([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
-    const [isTyping, setIsTyping] = useState(false);
     
     const inputRef = useRef(null);
     const terminalBodyRef = useRef(null);
 
+    // Determine which ASCII art to show based on screen width
+    const getAsciiArt = () => {
+        if (window.innerWidth > 1200) return asciiArtFull;
+        if (window.innerWidth > 768) return asciiArt;
+        return asciiArtMobile;
+    };
+
+    const [isTyping, setIsTyping] = useState(false);
+
+    // Initial greeting
     // Initial greeting
     useEffect(() => {
-        const isMobile = window.innerWidth <= 768;
-        const art = isMobile ? asciiArtMobile : asciiArt;
+        const art = getAsciiArt();
         
         setHistory([{ 
             id: 'init', 
@@ -22,7 +31,6 @@ export const useTerminal = () => {
             type: 'output', 
             isAnimated: true 
         }]);
-        setIsTyping(true);
     }, []);
 
     // Auto-scroll
