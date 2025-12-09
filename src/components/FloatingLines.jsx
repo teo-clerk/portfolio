@@ -211,7 +211,7 @@ vec3 getLineColor(float t, vec3 baseColor) {
 
   float m = uv.y - y;
 
-  return 0.0175 / max(abs(m) + 0.01, 1e-3) + 0.01;
+  return 0.03 / max(abs(m) + 0.01, 1e-3) + 0.01; // Increased thickness from 0.0175 to 0.03
 
 }
 
@@ -277,7 +277,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
         interactive
 
-      ) * 0.2;
+      ) * 0.2; // Increased brightness to 0.2
 
     }
 
@@ -312,7 +312,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
         interactive
 
-      );
+      ) * 1.2; // Increased brightness (implicit 1.0 -> 1.2)
 
     }
 
@@ -349,7 +349,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
         interactive
 
-      ) * 0.1;
+      ) * 0.4; // Increased brightness from 0.1 to 0.4
 
     }
 

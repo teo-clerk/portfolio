@@ -22,7 +22,7 @@ function App() {
       {/* Layer 2: Floating 3D Lines */}
       <FloatingLines 
         enabledWaves={['top', 'middle', 'bottom']}
-        lineCount={5}
+        lineCount={7}
         lineDistance={6}
         bendRadius={5.0}
         bendStrength={-0.5}
