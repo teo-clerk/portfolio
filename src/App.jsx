@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import FloatingLines from './components/FloatingLines';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Terminal from './components/Terminal';
 import CustomCursor from './components/CustomCursor';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+
+// Heavy components — loaded lazily so they never block FCP/LCP
+const FloatingLines = lazy(() => import('./components/FloatingLines'));
 
 // Detect low-power/mobile conditions
 const isLowPower = () => {
@@ -35,21 +37,23 @@ function App() {
       {/* Custom cursor — hidden automatically on touch devices */}
       <CustomCursor />
 
-      {/* Floating 3D Lines — reduced on low-power */}
-      <FloatingLines
-        enabledWaves={lowPower ? ['middle'] : ['top', 'middle', 'bottom']}
-        lineCount={lineCount}
-        lineDistance={lineDistance}
-        bendRadius={lowPower ? 3.0 : 5.0}
-        bendStrength={-0.5}
-        interactive={!isMobile}
-        parallax={!isMobile && !lowPower}
-        mixBlendMode={isMobile ? 'normal' : 'screen'}
-      />
+      {/* Floating 3D Lines — lazy loaded (Three.js ~600KB) so it never blocks FCP */}
+      <Suspense fallback={null}>
+        <FloatingLines
+          enabledWaves={lowPower ? ['middle'] : ['top', 'middle', 'bottom']}
+          lineCount={lineCount}
+          lineDistance={lineDistance}
+          bendRadius={lowPower ? 3.0 : 5.0}
+          bendStrength={-0.5}
+          interactive={!isMobile}
+          parallax={!isMobile && !lowPower}
+          mixBlendMode={isMobile ? 'normal' : 'screen'}
+        />
+      </Suspense>
 
       {/* Terminal */}
       <Terminal />
-      
+
       {/* Vercel Speed Insights */}
       <SpeedInsights />
     </div>
