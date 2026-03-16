@@ -172,6 +172,17 @@ export const useTerminal = () => {
             return;
         } else if (lowerCmd === 'help') {
             outputContent = helpText;
+        } else if (lowerCmd === 'commands') {
+            // Secret testing command to list ALL strings in commandsList
+            const sortedCmds = [...commandsList].sort();
+            outputContent = `
+<div class="help-container">
+  <div class="section-title">ALL INTERNAL COMMANDS (DEBUG)</div>
+  <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px;">
+    ${sortedCmds.map(c => `<div class="command-highlight" style="font-size:0.85rem;" data-cmd="${c}">${c}</div>`).join('')}
+  </div>
+</div><br>`;
+            shouldAnimate = false;
         } else if (lowerCmd === 'whoami') {
             outputContent = whoamiText;
         } else if (lowerCmd === 'game') {

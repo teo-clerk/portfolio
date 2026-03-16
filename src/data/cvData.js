@@ -898,5 +898,6 @@ export const commandsList = [
     'pascal', 'rapunzel', 'camaleon', 'chameleon',
     'easter eggs', 'groot', 'i am groot', 'ironman', 'astrofact', 'cat', 'pato',
     'guardians', 'guardians of the galaxy', 'starlord', 'star lord', 'peter quill',
-    'ask', 'chat', 'teofetch', 'htop', 'weather', 'cowsay', 'lofi', 'rain', 'volume', 'hack', 'snake', 'history', 'map', 'lang'
+    'ask', 'chat', 'teofetch', 'htop', 'weather', 'cowsay', 'lofi', 'rain', 'volume', 'hack', 'snake', 'history', 'map', 'lang',
+    'calc', 'contact', 'email', 'gargantua'
 ];
