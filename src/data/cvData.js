@@ -113,8 +113,6 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="languages">languages</span><span class="help-desc">Spoken languages</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="interests">interests</span><span class="help-desc">Personal interests</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="contact">contact</span><span class="help-desc">Contact information</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="ask who are you?">ask [question]</span><span class="help-desc">Chat with Teo's AI</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="matrix">matrix</span><span class="help-desc">Enter the Matrix 🕶️</span></div>
   </div>
   <br>
   <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── ACTIONS ────────────────────────────────</div>
@@ -141,6 +139,8 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="history">history</span><span class="help-desc">View command history</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="map">map</span><span class="help-desc">Show interactive map 🗺️</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="calc 5*4">calc [math]</span><span class="help-desc">Evaluate math</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="matrix">matrix</span><span class="help-desc">Enter the Matrix 🕶️</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="ask who are you?">ask [question]</span><span class="help-desc">Chat with Teo's AI</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="lang es">lang [lang]</span><span class="help-desc">Change interface language</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="email">email</span><span class="help-desc">Send me an email</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="clear">clear</span><span class="help-desc">Clear the terminal</span></div>

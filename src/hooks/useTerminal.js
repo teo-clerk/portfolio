@@ -439,6 +439,8 @@ drwxr-xr-x  contact/
             playSound('r2d2.mp3');
             outputContent = r2d2Text;
             shouldAnimate = false;
+            // Force play in case of transient issues
+            specialAction = () => { playSound('r2d2.mp3'); };
         } else if (lowerCmd === 'starwars' || lowerCmd === 'star wars') {
             outputContent = starWarsText;
             shouldAnimate = false;
@@ -520,6 +522,8 @@ drwxr-xr-x  contact/
             playSound('starlord.mp3');
             outputContent = starlordText;
             shouldAnimate = false;
+            // Force play in case of transient issues
+            specialAction = () => { playSound('starlord.mp3'); };
         } else if (lowerCmd === 'ironman' || lowerCmd === 'iron man' || lowerCmd === 'tony stark') {
             playSound('ironman.mp3');
             outputContent = ironmanText;
