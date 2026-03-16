@@ -58,19 +58,21 @@ export const useTerminal = () => {
         }
     };
 
+    const audioRefs = useRef({});
+
     // Helper to play looping sound
     const toggleLoopingSound = (soundName) => {
         try {
-            if (audioRefs[soundName]) {
-                audioRefs[soundName].pause();
-                audioRefs[soundName].currentTime = 0;
-                delete audioRefs[soundName];
+            if (audioRefs.current[soundName]) {
+                audioRefs.current[soundName].pause();
+                audioRefs.current[soundName].currentTime = 0;
+                delete audioRefs.current[soundName];
                 return false;
             } else {
                 const audio = new Audio(`/sounds/${soundName}`);
                 audio.loop = true;
                 audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
-                audioRefs[soundName] = audio;
+                audioRefs.current[soundName] = audio;
                 return true;
             }
         } catch (error) {
@@ -552,8 +554,20 @@ ${bot}
                 setIsTyping(true);
                 
                 fetch(`https://wttr.in/${city}?format=3`)
-                    .then(res => res.text())
+                    .then(res => {
+                        if (!res.ok) throw new Error("Network/CORS error");
+                        return res.text();
+                    })
+                    .catch(() => {
+                        // Fallback to proxy if wttr.in gives CORS error or 503
+                        return fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://wttr.in/${city}?format=3`)}`)
+                            .then(res => {
+                                if (!res.ok) throw new Error("Proxy error");
+                                return res.text();
+                            });
+                    })
                     .then(text => {
+                        if (!text || text.includes('Unknown location')) throw new Error("Not found");
                         setHistory(current => current.map(item => 
                             item.id === weatherId 
                                 ? { ...item, content: `<div style="color:#ddd;">☁️ ${text}</div><br>`, isAnimated: true } 
