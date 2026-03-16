@@ -136,9 +136,10 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="weather venice">weather [city]</span><span class="help-desc">Get current weather</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="cowsay hello">cowsay [msg]</span><span class="help-desc">ASCII cow message</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="lofi">lofi</span><span class="help-desc">Toggle lofi radio 📻</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="rain">rain</span><span class="help-desc">Toggle rain sounds 🌧️</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="volume 75">volume [0-100]</span><span class="help-desc">Set global audio volume</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="history">history</span><span class="help-desc">View command history</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="map">map</span><span class="help-desc">Show interactive map 🗺️</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="calc 5*4">calc [math]</span><span class="help-desc">Evaluate math</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="lang es">lang [lang]</span><span class="help-desc">Change interface language</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="clear">clear</span><span class="help-desc">Clear the terminal</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="help">help</span><span class="help-desc">Show this help</span></div>
@@ -385,7 +386,7 @@ const randomArtPool = [
   :███  ( ● )   ███:
   :███        /  ███:
    :██████████████:
-    ''':███████:'''
+    ''':█████:'''
       ''' : '''
 
  Gargantua — Interstellar
@@ -486,27 +487,19 @@ export const yodaText = `
 </div><br>`;
 
 export const vaderText = `
-<pre class="ascii-art" style="color:#ccc; font-size:0.8rem;">
-     .----.
-    / o  o \\
-   |  \\__/  |
-   |________|
-   |  ||||  |
-   |  ||||  |
-   .--------. 
-  /  VADER   \\
- /____________\\
-      |  |
-     _|  |_
-    (_|  |_)
-
-   — Darth Vader —
+<div class="vader-breath">
+<pre class="ascii-art" style="font-size:0.8rem; margin-top:10px;">
+        _.-'~~~~~~~'-._
+      /   _.-~\\/~-._   \\
+     |   |   |\\|   |   |
+     |   |   |/|   |   |
+     |   |___|/|___|   |
+     |  /     |     \\  |
+     \\_/_/'~~\\|/~~'\\_\\_/
 </pre>
-<div style="color:#888; font-style:italic;">"I find your lack of <code>git commit</code> disturbing."</div>
-<div style="color:#aaa; font-size:0.88rem; margin-top:6px;">
-  <em>*heavy breathing intensifies*</em><br>
-  "The Force is strong with this terminal. Join me,<br>
-  and together we can rule the cloud."
+<div style="font-weight:bold; font-size:1.1rem; text-align:center; margin-top:10px;">
+  "I find your lack of faith disturbing."
+</div>
 </div><br>`;
 
 export const r2d2Text = `
@@ -597,43 +590,26 @@ export const spiritedText = `
 
 // ── Spider-Man extended ────────────────────────────────────────────────────
 export const spiderManText = `
-<pre class="ascii-art" style="color:#ccc; font-size:0.8rem;">
-       _,--',   _._.--._____
-,-.' /  /|  \\.-'     .-'
- (   ' , '-'-. (|'''-.'''-.
-  ;  /,)  / . ) |,.---,-.--.|
-'--/  ,_,' /  ;|/' '      '   \\
-   \\  /,  / ( / /          /\\  \\
-    \\(/  /  /\\/                 /
-    (\\) /  /  /               /
-     \\/ / ) -'  ___   / /   /
-       \\/ /    / O \\-'    )
-        |/    / \\___/     |
-        '    O"           |
-
-  — Spider-Man (Miles or Peter, no debate) —
+<div class="spidey-swing" style="color:#e23636; text-shadow: 1px 1px 0 #005ce6;">
+<pre class="ascii-art" style="font-size:0.8rem;">
+      /\\    /\\
+     /  \\  /  \\
+    |____\\/____|
+    |          |
+    \\___/\\/\\___/
 </pre>
-<div class="whoami-card" style="margin-top:8px;">
-  <div class="whoami-row"><span class="whoami-label">identity</span><span class="whoami-value">Friendly Neighborhood Spider-Man 🕷️</span></div>
-  <div class="whoami-row"><span class="whoami-label">power</span><span class="whoami-value">Spider-sense, wall-crawling, TypeScript (lol)</span></div>
-  <div class="whoami-row"><span class="whoami-label">weakness</span><span class="whoami-value">Deadlines. And Harry Osborn.</span></div>
-  <div class="whoami-row"><span class="whoami-label">lesson</span><span class="whoami-value">"With great power comes great responsibility."</span></div>
-  <div class="whoami-row"><span class="whoami-label">multiverse</span><span class="whoami-value">All versions valid. <em>Into the Spider-Verse</em> won.</span></div>
+<div style="font-style:italic;">"With great power comes great responsibility." 🕸️</div>
 </div><br>`;
 
 export const pascalText = `
-<pre class="ascii-art" style="color:#27c93f; font-size:0.8rem;">
-       _..._
-     /       \\
-    |  O   O  |
-    |  .-.-.  |
-     \\  \\_/  /
-      '-----'
-    — Pascal —
+<div class="pascal-rainbow">
+<pre class="ascii-art" style="font-size:0.8rem;">
+     __
+    /  \\
+   |  O |
+   |____|
+    /  \\
 </pre>
-<div style="color:var(--accent-color); font-style:italic;">"Easter egg found: Rapunzel's chameleon!"</div>
-<div style="color:#aaa; font-size:0.88rem; margin-top:6px;">
-  He's a master of disguise, but you found him anyway. 🦎
 </div><br>`;
 
 // ── NEW EASTER EGGS ─────────────────────────────────────────────────────────
@@ -666,11 +642,13 @@ export const easterEggsText = `
     <div class="help-item"><span class="command-highlight" data-cmd="astrofact">astrofact</span><span class="help-desc">✨ Space facts</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="cat">cat</span><span class="help-desc">🐱 Meow</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="pato">pato</span><span class="help-desc">🦆 Quack</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="gargantua">gargantua</span><span class="help-desc">🌀 Black hole from Interstellar</span></div>
   </div>
 </div><br>`;
 
 export const grootText = `
-<pre class="ascii-art" style="color:#8b5a2b; font-size:0.8rem;">
+<div class="groot-sway">
+<pre class="ascii-art" style="font-size:0.8rem;">
        _--_
       /    \\
      | O  O |
@@ -680,7 +658,8 @@ export const grootText = `
      /|    |\\
     /_|    |_\\
 </pre>
-<div style="color:var(--accent-color); font-weight:bold; font-size: 1.2rem;">"I am Groot."</div><br>`;
+<div style="color:#8b5a2b; font-weight:bold; font-size: 1.2rem;">"I am Groot."</div>
+</div><br>`;
 
 export const guardiansText = `
 <div class="whoami-card">
@@ -778,16 +757,18 @@ export const snakeText = `
 <div style="color:#aaa;">Snake game module is currently offline for maintenance. But you found a snake! 🐍</div><br>`;
 
 export const ironmanText = `
-<div class="whoami-card">
-  <div style="color:var(--accent-color); letter-spacing:0.1em; margin-bottom:8px;">STARK INDUSTRIES DATABASE</div>
-  <div class="whoami-row"><span class="whoami-label">identity</span><span class="whoami-value">Tony Stark</span></div>
-  <div class="whoami-row"><span class="whoami-label">status</span><span class="whoami-value">Genius, billionaire, playboy, philanthropist.</span></div>
-  <div class="whoami-row"><span class="whoami-label">jarvis</span><span class="whoami-value">"Sometimes you gotta run before you can walk."</span></div>
+<div class="ironman-hud">
+<div class="whoami-card" style="border-color:#ff2a2a; background:rgba(255,0,0,0.05);">
+  <div style="color:#ff2a2a; letter-spacing:0.1em; margin-bottom:8px;">STARK INDUSTRIES DATABASE</div>
+  <div class="whoami-row"><span class="whoami-label" style="color:#ff2a2a;">identity</span><span class="whoami-value">Tony Stark</span></div>
+  <div class="whoami-row"><span class="whoami-label" style="color:#ff2a2a;">status</span><span class="whoami-value">Genius, billionaire, playboy, philanthropist.</span></div>
+  <div class="whoami-row"><span class="whoami-label" style="color:#ff2a2a;">jarvis</span><span class="whoami-value">"Sometimes you gotta run before you can walk."</span></div>
 </div>
-<div style="color:var(--accent-color); font-style:italic; margin-top:10px;">"I am Iron Man."</div><br>`;
+<div style="color:#ff2a2a; font-style:italic; margin-top:10px;">"I am Iron Man."</div>
+</div><br>`;
 
 export const catText = `
-<pre class="ascii-art" style="color:#ccc; font-size:0.8rem;">
+<pre class="ascii-art pet-bounce" style="color:#ccc; font-size:0.8rem; display:inline-block;">
    /\\_/\\
   ( o.o )
    > ^ <
@@ -795,13 +776,31 @@ export const catText = `
 <div style="color:var(--accent-color); font-style:italic;">Meow. (You found the cat!) 🐱</div><br>`;
 
 export const patoText = `
-<pre class="ascii-art" style="color:#ffcc00; font-size:0.8rem;">
+<pre class="ascii-art pet-bounce" style="color:#ffcc00; font-size:0.8rem; display:inline-block;">
     _
   >(.)__
    (___/
 </pre>
 <div style="color:var(--accent-color); font-style:italic;">Quack. (You found the duck!) 🦆</div>
 <div style="color:#aaa; font-size:0.88rem; margin-top:6px;">Rubber duck debugging activated. Need to talk through some code?</div><br>`;
+
+export const gargantuaText = `
+<div class="gargantua-warp" style="text-align:center; width:100%;">
+<pre class="ascii-art" style="color:#fff; font-size:0.6rem; line-height:1.1; display:inline-block; filter:drop-shadow(0 0 15px rgba(255,150,50,0.8));">
+              ...~-.             .-~...
+          ..~       \\         /       ~..
+        .~           \\       /           ~.
+      .~              |     |              ~.
+     .                |     |                .
+    .                 |     |                 .
+   .                  |     |                  .
+  .                   |     |                   .
+ .                   /       \\                   .
+.                  /           \\                  .
+</pre>
+<div style="color:#ffbd2e; font-size:1.2rem; font-weight:bold; letter-spacing:4px; margin-top:10px; text-shadow:0 0 20px #ffbd2e;">GARGANTUA</div>
+<div style="color:#aaa; font-style:italic; margin-top:5px;">"It's not possible... No, it's necessary."</div>
+</div><br>`;
 
 const astrofacts = [
     '✨ A day on Venus is longer than a year on Venus.',
@@ -859,5 +858,5 @@ export const commandsList = [
     'pascal', 'rapunzel', 'camaleon', 'chameleon',
     'easter eggs', 'groot', 'i am groot', 'ironman', 'astrofact', 'cat', 'pato',
     'guardians', 'guardians of the galaxy', 'starlord', 'star lord', 'peter quill',
-    'ask', 'chat', 'teofetch', 'htop', 'weather', 'cowsay', 'lofi', 'rain', 'hack', 'snake', 'history', 'map', 'lang'
+    'ask', 'chat', 'teofetch', 'htop', 'weather', 'cowsay', 'lofi', 'rain', 'volume', 'hack', 'snake', 'history', 'map', 'lang'
 ];

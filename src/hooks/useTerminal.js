@@ -6,7 +6,7 @@ import {
     yodaText, vaderText, r2d2Text, starWarsText, mayTheForceText,
     totoroText, ghibliText, spiritedText, spiderManText, getRandomFunfact,
     pascalText, easterEggsText, grootText, ironmanText, catText, patoText, getRandomAstrofact,
-    guardiansText, starlordText, teofetchText, htopText, snakeText
+    guardiansText, starlordText, teofetchText, htopText, snakeText, gargantuaText
 } from '../data/cvData';
 // Upgraded art pool (separate file to avoid backtick nesting issues)
 import { getRandomArt } from '../data/randomArt';
@@ -37,6 +37,7 @@ export const useTerminal = () => {
     // Always init to true; the effect below will immediately hide if already booted
     const [showBoot, setShowBoot] = useState(true);
     const [isTyping, setIsTyping] = useState(false);
+    const [globalVolume, setGlobalVolume] = useState(0.75);
     
     const inputRef = useRef(null);
     const terminalBodyRef = useRef(null);
@@ -52,6 +53,7 @@ export const useTerminal = () => {
     const playSound = (soundFileName) => {
         try {
             const audio = new Audio(`/sounds/${soundFileName}`);
+            audio.volume = globalVolume;
             audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
         } catch (error) {
             console.error('Failed to play sound', error);
@@ -71,6 +73,7 @@ export const useTerminal = () => {
             } else {
                 const audio = new Audio(`/sounds/${soundName}`);
                 audio.loop = true;
+                audio.volume = globalVolume;
                 audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
                 audioRefs.current[soundName] = audio;
                 return true;
@@ -131,6 +134,15 @@ export const useTerminal = () => {
             terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight;
         }
     }, [history, isTyping]);
+
+    // Update volume of already playing looping sounds when volume changes
+    useEffect(() => {
+        Object.values(audioRefs.current).forEach(audio => {
+            if (audio) {
+                audio.volume = globalVolume;
+            }
+        });
+    }, [globalVolume]);
 
     const runCommand = (cmd) => {
         if (isTyping) return;
@@ -218,6 +230,43 @@ export const useTerminal = () => {
         } else if (lowerCmd.startsWith('sudo')) {
             const subcmd = trimmedCmd.replace(/sudo\s*/i, '').trim() || 'something';
             outputContent = `<div><span style="color:#ff5f56;">Permission denied</span>: you are not root.<br>With great power comes great responsibility — and you don't have <em>either</em> here.<br>Try <span class="command-highlight" data-cmd="contact">contact</span> if you want to talk.</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd.startsWith('calc ') || lowerCmd === 'calc') {
+            const expression = trimmedCmd.replace(/^calc\s*/i, '').trim();
+            if (!expression) {
+                outputContent = `<div>Usage: <span class="command-highlight" data-cmd="calc 5 * 10">calc [math expression]</span></div><br>`;
+            } else {
+                try {
+                    // Safe evaluation: only allow numbers, math operators, parens, and spaces
+                    if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
+                        throw new Error('Invalid characters');
+                    }
+                    const result = new Function(`"use strict"; return (${expression})`)();
+                    outputContent = `<div><span style="color:#aaa;">${expression} =</span> <strong>${result}</strong></div><br>`;
+                } catch (e) {
+                    outputContent = `<div style="color:#ff5f56;">Error evaluating expression. Usage: <span class="command-highlight" data-cmd="calc 5 * 4">calc [math]</span></div><br>`;
+                }
+            }
+            shouldAnimate = false;
+        } else if (lowerCmd === 'contact') {
+            specialAction = () => {
+                setTimeout(() => {
+                    window.location.href = 'mailto:clerici.teo5@gmail.com';
+                }, 1000);
+            };
+            outputContent = `
+<pre class="ascii-art" style="color:var(--accent-color); font-size:0.6rem;">
+  _____________________ 
+ |  _________________  |
+ | |                 | |
+ | |   teoclerici    | |
+ | |      mail       | |
+ | |_________________| |
+ |_____________________|
+    \\ /           \\ /   
+     V             V    
+</pre>
+<div style="color:#aaa;">Initializing mail protocol...</div><br>`;
             shouldAnimate = false;
         } else if (lowerCmd === 'exit' || lowerCmd === 'quit') {
             outputContent = `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`;
@@ -451,7 +500,6 @@ drwxr-xr-x  contact/
         } else if (lowerCmd === 'groot' || lowerCmd === 'i am groot') {
             outputContent = grootText;
             shouldAnimate = false;
-            specialAction = () => playSound('groot.mp3');
         } else if (lowerCmd === 'guardians' || lowerCmd === 'guardians of the galaxy') {
             outputContent = guardiansText;
             shouldAnimate = false;
@@ -459,17 +507,22 @@ drwxr-xr-x  contact/
             outputContent = starlordText;
             shouldAnimate = false;
         } else if (lowerCmd === 'ironman' || lowerCmd === 'iron man' || lowerCmd === 'tony stark') {
+            playSound('ironman.mp3');
             outputContent = ironmanText;
             shouldAnimate = false;
-            specialAction = () => playSound('ironman.mp3');
         } else if (lowerCmd === 'astrofact') {
             outputContent = getRandomAstrofact();
             shouldAnimate = false;
+        } else if (lowerCmd === 'gargantua' || lowerCmd === 'black hole' || lowerCmd === 'interstellar') {
+            playSound('gargantua.mp3');
+            outputContent = gargantuaText;
+            shouldAnimate = false;
         } else if (lowerCmd === 'cat') {
+            playSound('meow.mp3');
             outputContent = catText;
             shouldAnimate = false;
-            specialAction = () => playSound('meow.mp3');
         } else if (lowerCmd === 'pato' || lowerCmd === 'duck') {
+            playSound('quack.mp3');
             outputContent = patoText;
             shouldAnimate = false;
             specialAction = () => playSound('quack.mp3');
@@ -584,6 +637,21 @@ ${bot}
                     });
                 return;
             }
+        } else if (lowerCmd.startsWith('volume') || lowerCmd === 'volume') {
+            const val = trimmedCmd.replace(/^volume\s*/i, '').trim();
+            if (!val) {
+                outputContent = `<div>Current volume: ${Math.round(globalVolume * 100)}%</div><br>`;
+            } else {
+                const num = parseInt(val, 10);
+                if (isNaN(num) || num < 0 || num > 100) {
+                    outputContent = `<div style="color:#ff5f56;">Invalid volume. Usage: <span class="command-highlight" data-cmd="volume 75">volume [0-100]</span></div><br>`;
+                } else {
+                    const newVol = num / 100;
+                    setGlobalVolume(newVol);
+                    outputContent = `<div>Volume set to ${num}%</div><br>`;
+                }
+            }
+            shouldAnimate = false;
         } else if (lowerCmd === 'lofi') {
             const isPlaying = toggleLoopingSound('lofi.mp3');
             outputContent = `<div>🎧 Lofi Hip Hop Radio - ${isPlaying ? '<span style="color:#0f0;">PLAYING</span>' : '<span style="color:#f00;">STOPPED</span>'}</div><br>`;

@@ -515,3 +515,82 @@ a:hover {
         font-size: 0.75rem;
     }
 }
+
+/* ── EASTER EGG ANIMATIONS ── */
+
+/* Iron Man boot up */
+@keyframes ironmanHUD {
+    0% { opacity: 0; transform: scale(1.05) translateY(-5px); filter: blur(4px); }
+    50% { opacity: 0.5; filter: blur(2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+.ironman-hud {
+    animation: ironmanHUD 0.8s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+    text-shadow: 0 0 10px rgba(255, 42, 42, 0.8), 0 0 20px rgba(255, 42, 42, 0.4);
+}
+
+/* Groot grow */
+@keyframes grootGrow {
+    0% { opacity: 0; transform: translateY(10px) scaleY(0.9); }
+    100% { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+.groot-grow {
+    animation: grootGrow 1.5s ease-out forwards;
+}
+
+/* Spider-Man swing */
+@keyframes spideySwing {
+    0% { transform: translateY(-30px) rotate(-10deg); opacity: 0; }
+    40% { transform: translateY(5px) rotate(5deg); opacity: 1; }
+    70% { transform: translateY(-2px) rotate(-2deg); }
+    100% { transform: translateY(0) rotate(0); opacity: 1; }
+}
+.spidey-swing {
+    animation: spideySwing 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    transform-origin: top center;
+}
+
+/* Pascal Rainbow */
+@keyframes rainbowCycle {
+    0% { color: #ff5f56; }
+    25% { color: #ffbd2e; }
+    50% { color: #27c93f; }
+    75% { color: #00d2ff; }
+    100% { color: #ff5f56; }
+}
+.pascal-rainbow {
+    animation: rainbowCycle 4s linear infinite;
+    font-weight: bold;
+}
+
+/* Cat & Duck Bounce */
+@keyframes petBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+.pet-bounce:hover {
+    animation: petBounce 0.5s ease-in-out infinite;
+    cursor: pointer;
+}
+
+/* Darth Vader Breathing */
+@keyframes sithBreath {
+    0% { opacity: 0.4; text-shadow: 0 0 5px rgba(255,0,0,0.2); }
+    50% { opacity: 1; text-shadow: 0 0 20px rgba(255,0,0,0.8); }
+    100% { opacity: 0.4; text-shadow: 0 0 5px rgba(255,0,0,0.2); }
+}
+.vader-breath {
+    animation: sithBreath 4s infinite ease-in-out;
+    color: #ff0000;
+}
+
+/* Gargantua Gravitational Lensing */
+@keyframes gravitationalLensing {
+    0% { transform: scale(1) rotate(0deg); filter: blur(0px) contrast(1); }
+    50% { transform: scale(1.02) rotate(1deg); filter: blur(1px) contrast(1.2) drop-shadow(0 0 30px rgba(255,255,255,0.2)); }
+    100% { transform: scale(1) rotate(0deg); filter: blur(0px) contrast(1); }
+}
+.gargantua-warp {
+    animation: gravitationalLensing 6s infinite ease-in-out;
+    display: inline-block;
+}
