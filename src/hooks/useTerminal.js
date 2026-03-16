@@ -299,9 +299,6 @@ drwxr-xr-x  contact/
         } else if (lowerCmd === 'date') {
             outputContent = `<div>${new Date().toUTCString()}</div><br>`;
             shouldAnimate = false;
-        } else if (lowerCmd === 'interstellar' || lowerCmd === 'cooper') {
-            outputContent = interstellarText;
-            shouldAnimate = false;
         } else if (lowerCmd === 'tars') {
             outputContent = tarsText;
             shouldAnimate = false;
@@ -408,6 +405,7 @@ drwxr-xr-x  contact/
             outputContent = yodaText;
             shouldAnimate = false;
         } else if (lowerCmd === 'vader' || lowerCmd === 'darth vader') {
+            playSound('imperialmarch.mp3');
             specialAction = () => {
                 const app = document.querySelector('.app-container');
                 if (app) {
@@ -525,7 +523,7 @@ drwxr-xr-x  contact/
         } else if (lowerCmd === 'astrofact') {
             outputContent = getRandomAstrofact();
             shouldAnimate = false;
-        } else if (lowerCmd === 'gargantua' || lowerCmd === 'black hole' || lowerCmd === 'interstellar') {
+        } else if (lowerCmd === 'gargantua' || lowerCmd === 'black hole' || lowerCmd === 'interstellar' || lowerCmd === 'cooper') {
             playSound('gargantua.mp3');
             outputContent = gargantuaText;
             shouldAnimate = false;
