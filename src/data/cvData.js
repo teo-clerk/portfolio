@@ -114,6 +114,7 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="interests">interests</span><span class="help-desc">Personal interests</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="contact">contact</span><span class="help-desc">Contact information</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="ask who are you?">ask [question]</span><span class="help-desc">Chat with Teo's AI</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="matrix">matrix</span><span class="help-desc">Enter the Matrix 🕶️</span></div>
   </div>
   <br>
   <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── ACTIONS ────────────────────────────────</div>
@@ -913,6 +914,6 @@ export const commandsList = [
     'ask', 'chat', 'teofetch', 'htop', 'top',
     'weather', 'cowsay', 'lofi', 'rain',
     'volume', 'hack', 'snake',
-    'history', 'map', 'lang',
+    'history', 'map', 'lang', 'matrix',
     'calc', 'gargantua'
 ];

@@ -436,6 +436,7 @@ drwxr-xr-x  contact/
             outputContent = vaderText;
             shouldAnimate = false;
         } else if (lowerCmd === 'r2d2' || lowerCmd === 'r2-d2') {
+            playSound('r2d2.mp3');
             outputContent = r2d2Text;
             shouldAnimate = false;
         } else if (lowerCmd === 'starwars' || lowerCmd === 'star wars') {
@@ -508,12 +509,14 @@ drwxr-xr-x  contact/
             outputContent = easterEggsText;
             shouldAnimate = false;
         } else if (lowerCmd === 'groot' || lowerCmd === 'i am groot') {
+            playSound('groot.mp3');
             outputContent = grootText;
             shouldAnimate = false;
         } else if (lowerCmd === 'guardians' || lowerCmd === 'guardians of the galaxy') {
             outputContent = guardiansText;
             shouldAnimate = false;
         } else if (lowerCmd === 'starlord' || lowerCmd === 'star lord' || lowerCmd === 'peter quill') {
+            playSound('starlord.mp3');
             outputContent = starlordText;
             shouldAnimate = false;
         } else if (lowerCmd === 'ironman' || lowerCmd === 'iron man' || lowerCmd === 'tony stark') {
