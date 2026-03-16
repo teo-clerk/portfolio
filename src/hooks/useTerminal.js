@@ -6,7 +6,7 @@ import {
     yodaText, vaderText, r2d2Text, starWarsText, mayTheForceText,
     totoroText, ghibliText, spiritedText, spiderManText, getRandomFunfact,
     pascalText, easterEggsText, grootText, ironmanText, catText, patoText, getRandomAstrofact,
-    guardiansText, starlordText, teofetchText, htopText, snakeText, gargantuaText
+    guardiansText, starlordText, teofetchText, htopText, snakeText, gargantuaText, emailText
 } from '../data/cvData';
 // Upgraded art pool (separate file to avoid backtick nesting issues)
 import { getRandomArt } from '../data/randomArt';
@@ -249,24 +249,25 @@ export const useTerminal = () => {
             }
             shouldAnimate = false;
         } else if (lowerCmd === 'contact') {
+            outputContent = `
+<div class="whoami-card">
+  <div style="color:var(--accent-color); letter-spacing:0.1em; margin-bottom:8px;">CONTACT INFORMATION</div>
+  <div class="whoami-row"><span class="whoami-label">name</span><span class="whoami-value">Teo Clerici</span></div>
+  <div class="whoami-row"><span class="whoami-label">email</span><span class="whoami-value"><a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">phone</span><span class="whoami-value">+34 615 451 338</span></div>
+  <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy</span></div>
+  <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span></div>
+  <div class="whoami-row" style="margin-top:8px;"><span style="color:#aaa; font-size:0.85rem;">Want to send a message now? Type <span class="command-highlight" data-cmd="email">email</span></span></div>
+</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'email') {
             specialAction = () => {
                 setTimeout(() => {
                     window.location.href = 'mailto:clerici.teo5@gmail.com';
                 }, 1000);
             };
-            outputContent = `
-<pre class="ascii-art" style="color:var(--accent-color); font-size:0.6rem;">
-  _____________________ 
- |  _________________  |
- | |                 | |
- | |   teoclerici    | |
- | |      mail       | |
- | |_________________| |
- |_____________________|
-    \\ /           \\ /   
-     V             V    
-</pre>
-<div style="color:#aaa;">Initializing mail protocol...</div><br>`;
+            outputContent = emailText;
             shouldAnimate = false;
         } else if (lowerCmd === 'exit' || lowerCmd === 'quit') {
             outputContent = `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`;
