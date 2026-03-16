@@ -1,17 +1,19 @@
 import React, { useEffect, useRef } from 'react';
 import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
+import { PongGame } from './PongGame';
+import BootSequence from './BootSequence';
+import MatrixRain from './MatrixRain';
+
 
 // Component to render a single line of output
-const OutputLine = ({ content, isAnimated, onAnimationComplete }) => {
+const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => {
   const { containerRef, isTyping, skip } = useTypewriter(content, onAnimationComplete);
 
-  // If not animated, just render HTML directly
   if (!isAnimated) {
     return <div className="output-line" dangerouslySetInnerHTML={{ __html: content }} />;
   }
 
-  // If animated, use the hook ref
   return (
     <div 
       ref={containerRef} 
@@ -19,7 +21,12 @@ const OutputLine = ({ content, isAnimated, onAnimationComplete }) => {
       onClick={skip}
     />
   );
-};
+}, (prevProps, nextProps) => {
+  // If the line is static (not animated anymore), never re-render it.
+  // This saves massive CPU overhead when typing new commands.
+  if (!prevProps.isAnimated && !nextProps.isAnimated) return true;
+  return prevProps.content === nextProps.content && prevProps.isAnimated === nextProps.isAnimated;
+});
 
 const Terminal = () => {
   const {
@@ -31,7 +38,13 @@ const Terminal = () => {
     inputRef,
     terminalBodyRef,
     handleKeyDown,
-    runCommand
+    runCommand,
+    showGame,
+    setShowGame,
+    showMatrix,
+    setShowMatrix,
+    showBoot,
+    setShowBoot,
   } = useTerminal();
 
   const turbulenceRef = useRef(null);
@@ -42,21 +55,22 @@ const Terminal = () => {
     let animationId;
     
     const animate = () => {
-      // Throttle: Only update DOM every 3rd frame (~20fps)
-      if (frames % 3 === 0) {
-        const val = 0.005 + Math.sin(frames * 0.002) * 0.002;
-        if (turbulenceRef.current) {
-          turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
-        }
+      // Pause SVG filter calculations when heavy overlays are visible
+      if (!showGame && !showMatrix) {
+          if (frames % 3 === 0) {
+            const val = 0.005 + Math.sin(frames * 0.002) * 0.002;
+            if (turbulenceRef.current) {
+              turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
+            }
+          }
+          frames++;
       }
-      
-      frames++;
       animationId = requestAnimationFrame(animate);
     };
     
     animate();
     return () => cancelAnimationFrame(animationId);
-  }, []);
+  }, [showGame, showMatrix]);
 
   // Tilt effect
   useEffect(() => {
@@ -85,24 +99,36 @@ const Terminal = () => {
   }, []);
 
   const handleWrapperClick = (e) => {
-    // If clicking a command link
     if (e.target.classList.contains('command-highlight')) {
       const cmd = e.target.getAttribute('data-cmd');
       if (cmd) runCommand(cmd);
       return;
     }
-    
-    // If clicking a normal link
     if (e.target.tagName === 'A') return;
-
-    // Otherwise focus input
     if (inputRef.current && !isTyping) {
       inputRef.current.focus();
     }
   };
 
+  const handleBootComplete = () => {
+    sessionStorage.setItem('booted', 'true');
+    setShowBoot(false);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
   return (
     <>
+      {/* Boot sequence — only plays once per session */}
+      {showBoot && <BootSequence onComplete={handleBootComplete} />}
+
+      {/* Matrix rain overlay */}
+      {showMatrix && (
+        <MatrixRain onExit={() => {
+          setShowMatrix(false);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }} />
+      )}
+
       <div className="scanlines"></div>
       
       <svg className="svg-filters">
@@ -141,15 +167,20 @@ const Terminal = () => {
                 content={item.content} 
                 isAnimated={item.isAnimated}
                 onAnimationComplete={() => {
-                  // Only set isTyping to false if this is the last item
                   if (index === history.length - 1) {
                     setIsTyping(false);
-                    // Focus input after typing done
                     setTimeout(() => inputRef.current?.focus(), 10);
                   }
                 }}
               />
             ))}
+            
+            {showGame && (
+              <PongGame onExit={() => {
+                setShowGame(false);
+                setTimeout(() => inputRef.current?.focus(), 10);
+              }} />
+            )}
             
             <div className="input-line">
               <span className="prompt">visitor@teoclerici:~$</span>
@@ -159,10 +190,10 @@ const Terminal = () => {
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
-                disabled={isTyping}
+                disabled={isTyping || showGame}
                 autoComplete="off" 
                 spellCheck="false" 
-                autoFocus
+                autoFocus={!showBoot}
               />
             </div>
           </div>

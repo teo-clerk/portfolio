@@ -58,6 +58,16 @@ export const useTypewriter = (htmlContent, onComplete) => {
                 const el = node.cloneNode(false);
                 parent.appendChild(el);
                 
+                // CRITICAL FIX: Skip typing character-by-character for large ascii-art divs
+                // This prevents the infinite recursive rendering loop that freezes the browser on reload
+                if (el.classList && el.classList.contains('ascii-art')) {
+                    el.innerHTML = node.innerHTML;
+                    const terminalBody = document.getElementById('terminal-body');
+                    if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
+                    await new Promise(r => setTimeout(r, 5));
+                    return; // Skip walking children
+                }
+                
                 if (el.tagName === 'BR') {
                     const terminalBody = document.getElementById('terminal-body');
                     if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
