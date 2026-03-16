@@ -3,6 +3,8 @@ import Terminal from './components/Terminal';
 import CustomCursor from './components/CustomCursor';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+import { Analytics } from "@vercel/analytics/react";
+
 // Heavy components — loaded lazily so they never block FCP/LCP
 const FloatingLines = lazy(() => import('./components/FloatingLines'));
 
@@ -56,6 +58,7 @@ function App() {
 
       {/* Vercel Speed Insights */}
       <SpeedInsights />
+      <Analytics />
     </div>
   );
 }
