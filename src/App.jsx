@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FloatingLines from './components/FloatingLines';
 import Terminal from './components/Terminal';
 import CustomCursor from './components/CustomCursor';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Detect low-power/mobile conditions
 const isLowPower = () => {
@@ -48,6 +49,9 @@ function App() {
 
       {/* Terminal */}
       <Terminal />
+      
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
     </div>
   );
 }
