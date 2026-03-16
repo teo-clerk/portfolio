@@ -113,6 +113,7 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="languages">languages</span><span class="help-desc">Spoken languages</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="interests">interests</span><span class="help-desc">Personal interests</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="contact">contact</span><span class="help-desc">Contact information</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="ask who are you?">ask [question]</span><span class="help-desc">Chat with Teo's AI</span></div>
   </div>
   <br>
   <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── ACTIONS ────────────────────────────────</div>
@@ -129,8 +130,16 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="fortune">fortune</span><span class="help-desc">Random inspirational quote</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="randomart">randomart</span><span class="help-desc">Random ASCII art from the vault</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="game">game</span><span class="help-desc">Play Pong 🏓</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="matrix">matrix</span><span class="help-desc">Enter the Matrix 🌧️</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="ls">ls</span><span class="help-desc">List directory contents</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="teofetch">teofetch</span><span class="help-desc">System info script</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="htop">htop</span><span class="help-desc">Task manager</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="weather venice">weather [city]</span><span class="help-desc">Get current weather</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="cowsay hello">cowsay [msg]</span><span class="help-desc">ASCII cow message</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="lofi">lofi</span><span class="help-desc">Toggle lofi radio 📻</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="rain">rain</span><span class="help-desc">Toggle rain sounds 🌧️</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="history">history</span><span class="help-desc">View command history</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="map">map</span><span class="help-desc">Show interactive map 🗺️</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="lang es">lang [lang]</span><span class="help-desc">Change interface language</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="clear">clear</span><span class="help-desc">Clear the terminal</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="help">help</span><span class="help-desc">Show this help</span></div>
   </div>
@@ -693,6 +702,81 @@ export const starlordText = `
 <div style="color:var(--accent-color); font-style:italic;">"I'm Star-Lord, man. Legendary outlaw?"</div>
 <div style="color:#aaa; font-size:0.88rem; margin-top:6px;">Put on your headphones and start dancing. 🎧</div><br>`;
 
+// ── HACKER UTILITIES ────────────────────────────────────────────────────────
+export const teofetchText = `
+<div style="display: flex; flex-direction: row; gap: 20px; align-items: center; margin-bottom: 10px;">
+<pre class="ascii-art" style="color:var(--accent-color); font-size: 0.75rem; margin: 0;">
+       _,met$$$$$gg.
+    ,g$$$$$$$$$$$$$$P.
+  ,g$$P"     """Y$$.".
+ ,$$P'              \`$$$.
+',$$P       ,ggs.     \`$$b:
+\`d$$'     ,$P"'   .    $$$
+ $$P      d$'     ,    $$P
+ $$:      $$.   -    ,d$$'
+ $$;      Y$b._   _,d$P'
+ Y$$.    \`.\`"Y$$$$P"'
+ \`$$b      "-.__
+  \`Y$$
+   \`Y$$.
+     \`$$b.
+       \`Y$$b.
+          \`"Y$b._
+              \`"""
+</pre>
+<div style="color:#ccc; font-size: 0.9rem; line-height: 1.5;">
+  <span style="color:var(--accent-color); font-weight:bold;">visitor</span>@<span style="color:var(--accent-color); font-weight:bold;">teoclerici</span><br>
+  -------------------------<br>
+  <span style="color:var(--accent-color);">OS:</span> TeoOS v20.26<br>
+  <span style="color:var(--accent-color);">Host:</span> H-Farm Campus<br>
+  <span style="color:var(--accent-color);">Kernel:</span> AI & Data Science<br>
+  <span style="color:var(--accent-color);">Uptime:</span> 21 years, 4 months<br>
+  <span style="color:var(--accent-color);">Packages:</span> 42 (React, Python, C++, etc.)<br>
+  <span style="color:var(--accent-color);">Shell:</span> bash-teo<br>
+  <span style="color:var(--accent-color);">Theme:</span> Glassmorphism Dark<br>
+  <span style="color:var(--accent-color);">Brain CPU:</span> 85% (Coffee required)<br>
+  <span style="color:var(--accent-color);">Memory:</span> 16GB / 2.5PB (Biological)<br>
+  <br>
+  <div style="display:flex; gap:4px;">
+    <span style="display:inline-block; width:12px; height:12px; background:#000;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#f00;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#0f0;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#ff0;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#00f;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#f0f;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#0ff;"></span>
+    <span style="display:inline-block; width:12px; height:12px; background:#fff;"></span>
+  </div>
+</div>
+</div><br>`;
+
+export const htopText = `
+<pre class="ascii-art" style="color:#aaa; font-size:0.75rem; line-height: 1.2;">
+  1  [||||||||||||||||||||||||||||||||||||||||       85.2%]   Tasks: 42, 1 thr; 3 running
+  2  [|||||||||||||||||||||||||||||                  42.8%]   Swapping: 0k total, 0k free
+  Mem[|||||||||||||||||||||||||||||||||||||||||||3.2G/16.0G]   Load average: 1.02 1.45 1.12
+  Swp[                                                0K/0K]   Uptime: 21 years
+
+  PID USER      PRI  NI  VIRT   RES   SHR S CPU% MEM%   TIME+  Command
+ 1042 teo        20   0  4.2G  1.1G   50M R 85.0  6.8  4:20:01 ./learning_machine_learning.sh
+    1 root       20   0 10.5M  2.2M  1.1M S  0.0  0.0 99:59:59 /sbin/init
+   42 teo        20   0  200M   50M   10M S  2.0  0.3  0:05:20 code /portfolio
+ 4040 teo        20   0  1.1G  200M   80M S  0.0  1.2 12:00:00 spotify (Lofi Girl)
+ 9999 teo        20   0  500M  100M   20M R 10.0  0.6  0:01:12 node server.js
+</pre><br>`;
+
+export const snakeText = `
+<pre class="ascii-art" style="color:var(--accent-color);">
+       ---_ ......._-_--.
+      (|\\ /      / /| \\  \\
+      /  /     .'  -=-'   \`.
+     /  /    .'             )
+   _/  /   .'        _.)   /
+  / o   o   _(.-'----\\- -'
+  \\_-^_-^-_/
+</pre>
+<div style="color:#aaa;">Snake game module is currently offline for maintenance. But you found a snake! 🐍</div><br>`;
+
 export const ironmanText = `
 <div class="whoami-card">
   <div style="color:var(--accent-color); letter-spacing:0.1em; margin-bottom:8px;">STARK INDUSTRIES DATABASE</div>
@@ -774,5 +858,6 @@ export const commandsList = [
     'totoro', 'ghibli', 'spirited', 'spiderman', 'spider-man',
     'pascal', 'rapunzel', 'camaleon', 'chameleon',
     'easter eggs', 'groot', 'i am groot', 'ironman', 'astrofact', 'cat', 'pato',
-    'guardians', 'guardians of the galaxy', 'starlord', 'star lord', 'peter quill'
+    'guardians', 'guardians of the galaxy', 'starlord', 'star lord', 'peter quill',
+    'ask', 'chat', 'teofetch', 'htop', 'weather', 'cowsay', 'lofi', 'rain', 'hack', 'snake', 'history', 'map', 'lang'
 ];

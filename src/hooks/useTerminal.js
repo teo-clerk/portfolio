@@ -6,10 +6,11 @@ import {
     yodaText, vaderText, r2d2Text, starWarsText, mayTheForceText,
     totoroText, ghibliText, spiritedText, spiderManText, getRandomFunfact,
     pascalText, easterEggsText, grootText, ironmanText, catText, patoText, getRandomAstrofact,
-    guardiansText, starlordText
+    guardiansText, starlordText, teofetchText, htopText, snakeText
 } from '../data/cvData';
 // Upgraded art pool (separate file to avoid backtick nesting issues)
 import { getRandomArt } from '../data/randomArt';
+import { askGrok } from '../services/aiService';
 
 const THEMES = {
     purple: { accent: '#8A2BE2', bg: 'rgba(20, 20, 20, 0.5)' },
@@ -57,7 +58,28 @@ export const useTerminal = () => {
         }
     };
 
-    // Initial greeting
+    // Helper to play looping sound
+    const toggleLoopingSound = (soundName) => {
+        try {
+            if (audioRefs[soundName]) {
+                audioRefs[soundName].pause();
+                audioRefs[soundName].currentTime = 0;
+                delete audioRefs[soundName];
+                return false;
+            } else {
+                const audio = new Audio(`/sounds/${soundName}`);
+                audio.loop = true;
+                audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
+                audioRefs[soundName] = audio;
+                return true;
+            }
+        } catch (error) {
+            console.error('Failed to toggle sound', error);
+            return false;
+        }
+    };
+
+    // Initial greeting and Konami code
     useEffect(() => {
         // Immediately hide boot screen if already shown this session
         if (sessionStorage.getItem('booted') === 'true') {
@@ -71,6 +93,34 @@ export const useTerminal = () => {
             type: 'output', 
             isAnimated: true 
         }]);
+
+        // Konami Code listener
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+
+        const handleKeyDown = (e) => {
+            if (e.key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    // Unlock God Mode
+                    const godModeId = Date.now() + '-godmode';
+                    setHistory(prev => [...prev, {
+                        id: godModeId,
+                        content: `<div style="color:gold; font-size:1.5rem; text-shadow: 0 0 10px gold;">🌟 GOD MODE ACTIVATED 🌟</div><br>`,
+                        type: 'output',
+                        isAnimated: true
+                    }]);
+                    applyTheme('amber');
+                    playSound('yoda.mp3');
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     // Auto-scroll
@@ -423,6 +473,176 @@ drwxr-xr-x  contact/
             specialAction = () => playSound('quack.mp3');
         } else if (lowerCmd === 'funfact' || lowerCmd === 'fun fact') {
             outputContent = getRandomFunfact();
+            shouldAnimate = false;
+        } else if (lowerCmd.startsWith('ask ') || lowerCmd === 'ask') {
+            const question = trimmedCmd.replace(/^ask\s*/i, '').trim();
+            if (!question) {
+                outputContent = `<div>Please provide a question. Usage: <span class="command-highlight" data-cmd="ask who are you?">ask [your question]</span></div><br>`;
+                shouldAnimate = false;
+            } else {
+                // Async handling for AI
+                const thinkingId = Date.now() + '-thinking';
+                newHistory.push({
+                    id: thinkingId,
+                    content: `<div style="color:#888;">Thinking...</div><br>`,
+                    type: 'output',
+                    isAnimated: false
+                });
+                
+                // Immediately update state with "Thinking..."
+                setHistory([...newHistory]);
+                setCommandHistory(prev => [...prev, trimmedCmd]);
+                setHistoryIndex(commandHistory.length + 1);
+                setInputVal('');
+                setIsTyping(true); // Can't type while thinking
+                
+                // Fire async AI call
+                askGrok(question).then(reply => {
+                    setHistory(current => current.map(item => 
+                        item.id === thinkingId 
+                            ? { ...item, content: `<div><span style="color:var(--accent-color);">■ Grok:</span> ${reply}</div><br>`, isAnimated: true } 
+                            : item
+                    ));
+                    // Re-trigger typing animation for the newly injected text
+                    setIsTyping(true);
+                });
+                
+                return; // Exit early since state is already handled async
+            }
+        } else if (lowerCmd === 'teofetch') {
+            outputContent = teofetchText;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'htop' || lowerCmd === 'top') {
+            outputContent = htopText;
+            shouldAnimate = false;
+        } else if (lowerCmd.startsWith('cowsay ') || lowerCmd === 'cowsay') {
+            const msg = trimmedCmd.replace(/^cowsay\s*/i, '').trim() || "Moo";
+            const len = msg.length + 2;
+            const top = " _" + "_".repeat(len) + "_ ";
+            const bot = " -" + "-".repeat(len) + "- ";
+            
+            outputContent = `<pre class="ascii-art" style="color:#aaa; font-size: 0.8rem;">
+${top}
+< ${msg} >
+${bot}
+        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||</pre><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd.startsWith('weather') || lowerCmd === 'weather') {
+            const city = trimmedCmd.replace(/^weather\s*/i, '').trim();
+            if (!city) {
+                outputContent = `<div>Usage: <span class="command-highlight" data-cmd="weather venice">weather [city]</span></div><br>`;
+                shouldAnimate = false;
+            } else {
+                const weatherId = Date.now() + '-weather';
+                newHistory.push({
+                    id: weatherId,
+                    content: `<div style="color:#888;">Fetching weather for ${city}...</div><br>`,
+                    type: 'output',
+                    isAnimated: false
+                });
+                
+                setHistory([...newHistory]);
+                setCommandHistory(prev => [...prev, trimmedCmd]);
+                setHistoryIndex(commandHistory.length + 1);
+                setInputVal('');
+                setIsTyping(true);
+                
+                fetch(`https://wttr.in/${city}?format=3`)
+                    .then(res => res.text())
+                    .then(text => {
+                        setHistory(current => current.map(item => 
+                            item.id === weatherId 
+                                ? { ...item, content: `<div style="color:#ddd;">☁️ ${text}</div><br>`, isAnimated: true } 
+                                : item
+                        ));
+                        setIsTyping(true);
+                    }).catch(err => {
+                        setHistory(current => current.map(item => 
+                            item.id === weatherId 
+                                ? { ...item, content: `<div style="color:#ff5f56;">Failed to fetch weather for "${city}".</div><br>`, isAnimated: true } 
+                                : item
+                        ));
+                        setIsTyping(true);
+                    });
+                return;
+            }
+        } else if (lowerCmd === 'lofi') {
+            const isPlaying = toggleLoopingSound('lofi.mp3');
+            outputContent = `<div>🎧 Lofi Hip Hop Radio - ${isPlaying ? '<span style="color:#0f0;">PLAYING</span>' : '<span style="color:#f00;">STOPPED</span>'}</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'rain') {
+            const isPlaying = toggleLoopingSound('rain.mp3');
+            outputContent = `<div>🌧️ Rain Simulator - ${isPlaying ? '<span style="color:#0f0;">PLAYING</span>' : '<span style="color:#f00;">STOPPED</span>'}</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'hack') {
+            outputContent = `<div style="color:#0f0;">Initiating override sequence...</div>`;
+            shouldAnimate = false;
+            
+            specialAction = () => {
+                let count = 0;
+                const hackInterval = setInterval(() => {
+                    const randomHex = [...Array(40)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+                    setHistory(prev => [
+                        ...prev, 
+                        {
+                            id: Date.now() + '-hack-' + count,
+                            content: `<div style="color:var(--accent-color); opacity: 0.7;">[${count}] ${randomHex}</div>`,
+                            type: 'output',
+                            isAnimated: false
+                        }
+                    ]);
+                    count++;
+                    
+                    if (count > 20) {
+                        clearInterval(hackInterval);
+                        setTimeout(() => {
+                            setHistory(prev => [
+                                ...prev,
+                                {
+                                    id: Date.now() + '-hack-success',
+                                    content: `<div style="color:#ff5f56; font-size: 1.5rem; font-weight: bold; margin-top:10px;">> MAINFRAME ACCESS GRANTED</div><br>`,
+                                    type: 'output',
+                                    isAnimated: true
+                                }
+                            ]);
+                            setIsTyping(true);
+                        }, 500);
+                    }
+                }, 50);
+            };
+        } else if (lowerCmd === 'snake') {
+            outputContent = snakeText;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'history') {
+            const histLines = commandHistory.map((c, i) => `  ${i + 1}  ${c}`).join('<br>');
+            outputContent = `<div>${histLines || 'No history yet.'}</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd === 'map') {
+            outputContent = `
+<div style="width: 100%; height: 300px; border-radius: 8px; overflow: hidden; margin-top: 10px; box-shadow: 0 0 15px var(--accent-color);">
+  <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=12.190000915527346%2C45.35000000000001%2C12.450000076293947%2C45.520000000000004&amp;layer=mapnik&amp;marker=45.4343%2C12.3388" style="background:#000; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);"></iframe>
+</div>
+<br><div style="color:#aaa;">Location: Venice, Italy 🌍</div><br>`;
+            shouldAnimate = false;
+        } else if (lowerCmd.startsWith('lang ') || lowerCmd === 'lang') {
+            const lang = trimmedCmd.replace(/^lang\s*/i, '').trim().toLowerCase();
+            if (!lang) {
+                outputContent = `<div>Usage: <span class="command-highlight" data-cmd="lang es">lang [es/it/en/ca]</span></div><br>`;
+            } else if (lang === 'en') {
+                outputContent = `<div>English mode activated. (It already was!) 🇬🇧</div><br>`;
+            } else if (lang === 'es') {
+                outputContent = `<div>¡Modo español activado! (Traducción completa del CV en v3.0) 🇪🇸</div><br>`;
+            } else if (lang === 'it') {
+                outputContent = `<div>Modalità italiana attivata! (Traduzione completa del CV in v3.0) 🇮🇹</div><br>`;
+            } else if (lang === 'ca') {
+                outputContent = `<div>Mode català activat! (Traducció completa del CV a la v3.0) ✨</div><br>`;
+            } else {
+                outputContent = `<div>Language '${lang}' not fully supported yet. I speak English, Spanish, Italian, and Catalan!</div><br>`;
+            }
             shouldAnimate = false;
         } else if (cvData[lowerCmd]) {
             outputContent = cvData[lowerCmd];
