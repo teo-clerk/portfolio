@@ -513,6 +513,7 @@ drwxr-xr-x  contact/
             outputContent = grootText;
             shouldAnimate = false;
         } else if (lowerCmd === 'guardians' || lowerCmd === 'guardians of the galaxy') {
+            playSound('starlord.mp3');
             outputContent = guardiansText;
             shouldAnimate = false;
         } else if (lowerCmd === 'starlord' || lowerCmd === 'star lord' || lowerCmd === 'peter quill') {
