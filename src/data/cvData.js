@@ -144,6 +144,9 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="lang es">lang [lang]</span><span class="help-desc">Change interface language</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="email">email</span><span class="help-desc">Send me an email</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="clear">clear</span><span class="help-desc">Clear the terminal</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="recruiter">recruiter</span><span class="help-desc">Get the quick summary & CV</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="tour">tour</span><span class="help-desc">Take an automated tour</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="doom">doom</span><span class="help-desc">Play DOOM classic</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="help">help</span><span class="help-desc">Show this help</span></div>
   </div>
   <br>
@@ -212,6 +215,7 @@ export const asciiArtFull = `
 </div>
 <div class="subtitle">AI &amp; Data Science Student</div>
 <div>Type <span class="command-highlight" data-cmd="help">'help'</span> to see available commands.</div>
+<div>Recruiters: Type <span class="command-highlight" data-cmd="recruiter">'recruiter'</span> for a quick summary or <span class="command-highlight" data-cmd="tour">'tour'</span> for an automated showcase!</div>
 <br>
 `;
 
@@ -226,6 +230,7 @@ export const asciiArt = `
 </div>
 <div class="subtitle">AI &amp; Data Science Student</div>
 <div>Type <span class="command-highlight" data-cmd="help">'help'</span> to see available commands.</div>
+<div>Recruiters: Type <span class="command-highlight" data-cmd="recruiter">'recruiter'</span>!</div>
 <br>
 `;
 
@@ -240,6 +245,7 @@ export const asciiArtMobile = `
 </div>
 <div class="subtitle">AI &amp; Data Science Student</div>
 <div>Type <span class="command-highlight" data-cmd="help">'help'</span></div>
+<div>Fast track? Type <span class="command-highlight" data-cmd="recruiter">'recruiter'</span></div>
 <br>
 `;
 
@@ -891,8 +897,10 @@ export const emailText = `
 export const commandsList = [
     'help', 'about', 'education', 'experience', 'projects', 'skills',
     'certifications', 'languages', 'interests', 'contact', 'email', 'clear',
-    'game', 'whoami', 'download', 'open linkedin', 'open github', 'open email',
-    'theme', 'fortune', 'sudo', 'matrix', 'exit', 'quit', 'funfact',
+    'commands',
+    'game', 'whoami', 'download', 'open', 'open linkedin', 'open github', 'open email',
+    'theme', 'theme purple', 'theme green', 'theme amber',
+    'fortune', 'sudo', 'matrix', 'exit', 'quit', 'funfact',
     'interstellar', 'cooper', 'tars', 'gargantua', 'black hole',
     'ls', 'ls -la', 'pwd', 'date', 'randomart',
     'accio', 'accio cv', 'accio resume',
@@ -914,6 +922,6 @@ export const commandsList = [
     'ask', 'chat', 'teofetch', 'htop', 'top',
     'weather', 'cowsay', 'lofi', 'rain',
     'volume', 'hack', 'snake',
-    'history', 'map', 'lang', 'matrix',
-    'calc', 'gargantua'
+    'history', 'map', 'lang', 'lang en', 'lang es', 'lang it', 'lang ca',
+    'calc'
 ];

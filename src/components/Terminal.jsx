@@ -182,6 +182,41 @@ const Terminal = () => {
               }} />
             )}
             
+            {showDoom && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  zIndex: 9999,
+                  backgroundColor: '#000',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  borderRadius: '12px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', backgroundColor: '#111', borderBottom: '1px solid var(--accent-color)' }}>
+                  <div style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>DOOM.EXE</div>
+                  <button 
+                    onClick={() => {
+                      setShowDoom(false);
+                      setTimeout(() => inputRef.current?.focus(), 10);
+                    }}
+                    style={{
+                      background: 'none', border: 'none', color: '#ff5f56', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '1rem', fontWeight: 'bold'
+                    }}
+                  >
+                    [X] CLOSE
+                  </button>
+                </div>
+                <iframe 
+                  src="https://dos.zone/player/?id=doom" 
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  title="DOOM"
+                />
+              </div>
+            )}
+            
             <div className="input-line">
               <span className="prompt">visitor@teoclerici:~$</span>
               <input 
