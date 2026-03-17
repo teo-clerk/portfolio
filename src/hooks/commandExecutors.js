@@ -58,9 +58,9 @@ export const commandExecutors = {
         };
         const summary = `
 <div class="whoami-card" style="border-left: 4px solid var(--accent-color);">
-  <div style="color:var(--accent-color); font-weight:bold; font-size:1.2rem; margin-bottom:10px;">👋 Hi! I'm Teo Clerici - TL;DR Summary</div>
+  <div style="color:var(--accent-color); font-weight:bold; font-size:1.2rem; margin-bottom:10px;">👋 Hi! I'm Teo Clerici Jurado - TL;DR Summary</div>
   <div style="margin-bottom: 12px; line-height: 1.5;">
-    I'm a <strong>Full Stack & Mobile Developer</strong> specializing in React ecosystem (Next.js, React Native), Node.js, and modern AI integration. I enjoy building interactive, performance-driven applications.
+    I'm an <strong>AI & Data Science Student</strong> at the University of Chichester (H-Farm Campus) and a Passionate Developer. I enjoy building interactive, performance-driven applications and solving complex data problems.
   </div>
   <div class="whoami-row"><span class="whoami-label">email</span><span class="whoami-value"><a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span></div>
   <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span></div>

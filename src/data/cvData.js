@@ -162,7 +162,7 @@ export const helpText = `
 
 export const whoamiText = `
 <div class="whoami-card">
-  <div class="whoami-row"><span class="whoami-label">name</span><span class="whoami-value">Teo Clerici</span></div>
+  <div class="whoami-row"><span class="whoami-label">name</span><span class="whoami-value">Teo Clerici Jurado</span></div>
   <div class="whoami-row"><span class="whoami-label">role</span><span class="whoami-value">AI &amp; Data Science Student · Developer · Mentor</span></div>
   <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy (H-Farm Campus)</span></div>
   <div class="whoami-row"><span class="whoami-label">languages</span><span class="whoami-value">ES · IT · CA · EN</span></div>

@@ -159,7 +159,7 @@ const Terminal = () => {
               <div className="light yellow"></div>
               <div className="light green"></div>
             </div>
-            <div className="terminal-title">visitor@teoclerici: ~</div>
+            <div className="terminal-title">visitor@teoclericijurado: ~</div>
           </div>
           
           <div className="terminal-body" id="terminal-body" ref={terminalBodyRef}>
@@ -214,7 +214,7 @@ const Terminal = () => {
                   </button>
                 </div>
                 <iframe 
-                  src="https://js-dos.com/games/doom.exe.html" 
+                  src="https://silentspacemarine.com/" 
                   style={{ width: '100%', height: '100%', border: 'none' }}
                   title="DOOM"
                 />
@@ -222,7 +222,7 @@ const Terminal = () => {
             )}
             
             <div className="input-line">
-              <span className="prompt">visitor@teoclerici:~$</span>
+              <span className="prompt">visitor@teoclericijurado:~$</span>
               <input 
                 ref={inputRef}
                 type="text" 
