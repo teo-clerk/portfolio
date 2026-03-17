@@ -396,9 +396,9 @@ export const commandExecutors = {
     'map': () => ({
         outputContent: `
 <div style="width: 100%; height: 300px; border-radius: 8px; overflow: hidden; margin-top: 10px; box-shadow: 0 0 15px var(--accent-color);">
-  <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=12.190000915527346%2C45.35000000000001%2C12.450000076293947%2C45.520000000000004&amp;layer=mapnik&amp;marker=45.4343%2C12.3388" style="background:#000; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);"></iframe>
+  <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=12.40%2C45.56%2C12.43%2C45.59&amp;layer=mapnik&amp;marker=45.5786%2C12.4172" style="background:#000; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);"></iframe>
 </div>
-<br><div style="color:#aaa;">Location: Venice, Italy 🌍</div><br>`, shouldAnimate: false
+<br><div style="color:#aaa;">Location: H-Farm Campus (Roncade, Italy) 🌍</div><br>`, shouldAnimate: false
     }),
     'tour': (ctx) => {
         ctx.setTourQueue(['whoami', 'experience', 'skills', 'projects', 'randomart']);
