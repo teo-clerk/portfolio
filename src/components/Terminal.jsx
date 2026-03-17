@@ -186,6 +186,7 @@ const Terminal = () => {
             
             {showDoom && (
               <div 
+                onClick={(e) => e.stopPropagation()}
                 style={{
                   position: 'absolute',
                   inset: 0,
@@ -200,7 +201,8 @@ const Terminal = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', backgroundColor: '#111', borderBottom: '1px solid var(--accent-color)' }}>
                   <div style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>DOOM.EXE</div>
                   <button 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowDoom(false);
                       setTimeout(() => inputRef.current?.focus(), 10);
                     }}
@@ -212,7 +214,7 @@ const Terminal = () => {
                   </button>
                 </div>
                 <iframe 
-                  src="https://dos.zone/player/?id=doom" 
+                  src="https://js-dos.com/games/doom.exe.html" 
                   style={{ width: '100%', height: '100%', border: 'none' }}
                   title="DOOM"
                 />
