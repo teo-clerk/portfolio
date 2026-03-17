@@ -43,6 +43,8 @@ const Terminal = () => {
     setShowGame,
     showMatrix,
     setShowMatrix,
+    showDoom,
+    setShowDoom,
     showBoot,
     setShowBoot,
   } = useTerminal();
