@@ -198,19 +198,29 @@ const Terminal = () => {
                   borderRadius: '12px'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', backgroundColor: '#111', borderBottom: '1px solid var(--accent-color)' }}>
-                  <div style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>DOOM.EXE</div>
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDoom(false);
+                    setTimeout(() => inputRef.current?.focus(), 10);
+                  }}
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    padding: '15px 25px', 
+                    backgroundColor: '#B22222', 
+                    borderBottom: '2px solid #fff',
+                    cursor: 'pointer',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>DOOM.EXE (Click this bar to close)</div>
                   <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDoom(false);
-                      setTimeout(() => inputRef.current?.focus(), 10);
-                    }}
                     style={{
-                      background: 'none', border: 'none', color: '#ff5f56', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '1rem', fontWeight: 'bold'
+                      background: '#fff', border: 'none', color: '#B22222', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '1.2rem', fontWeight: 'bold', padding: '8px 16px', borderRadius: '6px'
                     }}
                   >
-                    [X] CLOSE
+                    X CLOSE
                   </button>
                 </div>
                 <iframe 
