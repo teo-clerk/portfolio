@@ -225,7 +225,7 @@ body::before {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    font-size: 1rem;
+    font-size: 1.15rem;
     line-height: 1.6;
     scrollbar-width: thin;
     scrollbar-color: var(--accent-color) transparent;
@@ -264,7 +264,7 @@ input[type="text"] {
     border: none;
     color: var(--text-color);
     font-family: var(--font-stack);
-    font-size: 1rem;
+    font-size: 1.15rem;
     flex: 1;
     outline: none;
     caret-color: var(--accent-color);
@@ -333,7 +333,7 @@ a:hover {
 }
 
 .ascii-art {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     line-height: 1.2;
     color: var(--text-color);
     margin-bottom: 20px;
@@ -497,7 +497,7 @@ a:hover {
 /* ── Better mobile font sizes ── */
 @media (max-width: 480px) {
     .terminal-body {
-        font-size: 0.82rem !important;
+        font-size: 0.95rem !important;
         padding: 10px !important;
     }
 

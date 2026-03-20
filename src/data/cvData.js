@@ -129,6 +129,7 @@ export const helpText = `
     <div class="help-item"><span class="command-highlight" data-cmd="fortune">fortune</span><span class="help-desc">Random inspirational quote</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="randomart">randomart</span><span class="help-desc">Random ASCII art from the vault</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="game">game</span><span class="help-desc">Play Pong 🏓</span></div>
+    <div class="help-item"><span class="command-highlight" data-cmd="snake">snake</span><span class="help-desc">Play Snake 🐍</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="ls">ls</span><span class="help-desc">List directory contents</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="teofetch">teofetch</span><span class="help-desc">System info script</span></div>
     <div class="help-item"><span class="command-highlight" data-cmd="htop">htop</span><span class="help-desc">Task manager</span></div>

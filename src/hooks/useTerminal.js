@@ -28,6 +28,7 @@ export const useTerminal = () => {
     const [showGame, setShowGame] = useState(false);
     const [showMatrix, setShowMatrix] = useState(false);
     const [showDoom, setShowDoom] = useState(false);
+    const [showSnake, setShowSnake] = useState(false);
     const [showBoot, setShowBoot] = useState(true);
     const [isTyping, setIsTyping] = useState(false);
     const [globalVolume, setGlobalVolume] = useState(0.75);
@@ -80,9 +81,10 @@ export const useTerminal = () => {
         }
 
         const art = getAsciiArt();
+        const welcomeMessage = `<div style="color:var(--accent-color); margin-top: 15px; font-weight: bold;">TeoOS v20.26 (H-Farm Edition)</div><div style="color:#aaa; margin-top: 5px;">Welcome to the interactive terminal. Type <span class="command-highlight" data-cmd="help">help</span> to see all commands.</div><div style="margin-top: 12px; font-size: 0.9rem; color: #888;">Quick Start:</div><div style="display: flex; gap: 12px; margin-top: 6px;"><span class="command-highlight" data-cmd="about">#about</span> <span class="command-highlight" data-cmd="projects">#projects</span> <span class="command-highlight" data-cmd="tour">#tour</span></div><br>`;
         setHistory([{ 
             id: 'init', 
-            content: art, 
+            content: art + welcomeMessage, 
             type: 'output', 
             isAnimated: true 
         }]);
@@ -160,7 +162,7 @@ export const useTerminal = () => {
         // Command context passed to executors
         const ctx = {
             cmd: trimmedCmd, newHistory, history, 
-            setHistory, setInputVal, setShowGame, setShowMatrix, setShowDoom, applyTheme,
+            setHistory, setInputVal, setShowGame, setShowMatrix, setShowDoom, setShowSnake, applyTheme,
             globalVolume, setGlobalVolume, playSound, toggleLoopingSound, setIsTyping,
             commandHistory, setCommandHistory, setHistoryIndex, setTourQueue
         };
@@ -263,6 +265,8 @@ export const useTerminal = () => {
         setShowMatrix,
         showDoom,
         setShowDoom,
+        showSnake,
+        setShowSnake,
         showBoot,
         setShowBoot,
     };

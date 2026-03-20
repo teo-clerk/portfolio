@@ -49,12 +49,7 @@ export const commandExecutors = {
     },
     'recruiter': (ctx) => {
         const specialAction = () => {
-            const a = document.createElement('a');
-            a.href = '/CV.pdf';
-            a.download = 'Teo_Clerici_CV.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            window.open('/CV.pdf', '_blank');
         };
         const summary = `
 <div class="whoami-card" style="border-left: 4px solid var(--accent-color);">
@@ -74,12 +69,7 @@ export const commandExecutors = {
     'fortune': () => ({ outputContent: getRandomFortune(), shouldAnimate: false }),
     'download': () => {
         const specialAction = () => {
-            const a = document.createElement('a');
-            a.href = '/CV.pdf';
-            a.download = 'Teo_Clerici_CV.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            window.open('/CV.pdf', '_blank');
         };
         return { outputContent: `<div>📄 Downloading <strong>Teo_Clerici_CV.pdf</strong>...</div><br>`, shouldAnimate: false, specialAction };
     },
@@ -115,12 +105,7 @@ export const commandExecutors = {
         outputContent: accioText,
         shouldAnimate: false,
         specialAction: () => {
-            const a = document.createElement('a');
-            a.href = '/CV.pdf';
-            a.download = 'Teo_Clerici_CV.pdf';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            window.open('/CV.pdf', '_blank');
         }
     }),
     'accio resume': (ctx) => commandExecutors['accio cv'](ctx),
@@ -388,7 +373,12 @@ export const commandExecutors = {
             }, 50);
         }
     }),
-    'snake': () => ({ outputContent: snakeText, shouldAnimate: false }),
+    'snake': (ctx) => {
+        ctx.setHistory([...ctx.newHistory]);
+        ctx.setInputVal('');
+        setTimeout(() => ctx.setShowSnake(true), 50);
+        return { earlyReturn: true };
+    },
     'history': (ctx) => {
         const histLines = ctx.commandHistory.map((c, i) => `  ${i + 1}  ${c}`).join('<br>');
         return { outputContent: `<div>${histLines || 'No history yet.'}</div><br>`, shouldAnimate: false };
@@ -590,17 +580,17 @@ ${bot}
     {
         match: cmd => cmd.startsWith('lang ') || cmd === 'lang',
         execute: (cmd) => {
-            const lang = cmd.replace(/^lang\\s*/i, '').trim().toLowerCase();
+            const lang = cmd.replace(/^lang\s*/i, '').trim().toLowerCase();
             if (!lang) {
                 return { outputContent: `<div>Usage: <span class="command-highlight" data-cmd="lang es">lang [es/it/en/ca]</span></div><br>`, shouldAnimate: false };
             } else if (lang === 'en') {
                 return { outputContent: `<div>English mode activated. (It already was!) 🇬🇧</div><br>`, shouldAnimate: false };
             } else if (lang === 'es') {
-                return { outputContent: `<div>¡Modo español activado! (Traducción completa del CV en v3.0) 🇪🇸</div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>¡Modo español activado! Aquí tienes mi información básica: soy Teo Clerici, estudiante de IA y Ciencia de Datos. ¡Escribe <span class="command-highlight" data-cmd="help">help</span> para más comandos! 🇪🇸</div><br>`, shouldAnimate: false };
             } else if (lang === 'it') {
-                return { outputContent: `<div>Modalità italiana attivata! (Traduzione completa del CV in v3.0) 🇮🇹</div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>Modalità italiana attivata! Sono Teo Clerici, studente di AI e Data Science. Scrivi <span class="command-highlight" data-cmd="help">help</span> per esplorare! 🇮🇹</div><br>`, shouldAnimate: false };
             } else if (lang === 'ca') {
-                return { outputContent: `<div>Mode català activat! (Traducció completa del CV a la v3.0) ✨</div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>Mode català activat! Sóc en Teo Clerici, estudiant d'IA i Ciència de Dades. Escriu <span class="command-highlight" data-cmd="help">help</span> per veure més! ✨</div><br>`, shouldAnimate: false };
             } else {
                 return { outputContent: `<div>Language '${lang}' not fully supported yet. I speak English, Spanish, Italian, and Catalan!</div><br>`, shouldAnimate: false };
             }

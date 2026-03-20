@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { PongGame } from './PongGame';
+import SnakeGame from './SnakeGame';
 import BootSequence from './BootSequence';
 import MatrixRain from './MatrixRain';
 
@@ -45,6 +46,8 @@ const Terminal = () => {
     setShowMatrix,
     showDoom,
     setShowDoom,
+    showSnake,
+    setShowSnake,
     showBoot,
     setShowBoot,
   } = useTerminal();
@@ -53,6 +56,16 @@ const Terminal = () => {
 
   // Liquid animation
   useEffect(() => {
+    // Detect Safari to disable heavy SVG animation
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari) {
+      if (turbulenceRef.current) {
+        turbulenceRef.current.setAttribute('baseFrequency', '0.005 0.005');
+      }
+      return; // Do not start animation loop on Safari
+    }
+
     let frames = 0;
     let animationId;
     
@@ -231,6 +244,13 @@ const Terminal = () => {
               </div>
             )}
             
+            {showSnake && (
+              <SnakeGame onExit={() => {
+                setShowSnake(false);
+                setTimeout(() => inputRef.current?.focus(), 10);
+              }} />
+            )}
+            
             <div className="input-line">
               <span className="prompt">visitor@teoclericijurado:~$</span>
               <input 
@@ -240,6 +260,7 @@ const Terminal = () => {
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isTyping || showGame}
+                placeholder={!inputVal && !isTyping ? "type 'help' to see commands..." : ""}
                 autoComplete="off" 
                 spellCheck="false" 
                 autoFocus={!showBoot}
