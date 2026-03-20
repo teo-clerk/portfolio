@@ -23,7 +23,7 @@ export const askGrok = async (userMessage) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'grok-2-1212',
+                    model: 'grok-3-mini',
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
                         { role: 'user', content: userMessage }
@@ -63,7 +63,7 @@ export const askGrok = async (userMessage) => {
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'grok-2-1212', 
+                model: 'grok-3-mini', 
                 messages: [
                     { role: 'system', content: SYSTEM_PROMPT },
                     { role: 'user', content: userMessage }
