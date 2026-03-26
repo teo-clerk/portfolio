@@ -1,0 +1,15 @@
+# Allow AI crawlers to index the site for better AEO
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# General rules for other bots
+User-agent: *
+Allow: /
+
+Sitemap: https://teoclerici.com/sitemap.xml
