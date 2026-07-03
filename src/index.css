@@ -597,3 +597,92 @@ a:hover {
     display: inline-block;
     transform-origin: center center;
 }
+
+/* ── Floating Download CV Button ── */
+.download-cv-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+
+    background-color: rgba(138, 43, 226, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(138, 43, 226, 0.5);
+    border-radius: 50px;
+
+    color: #fff;
+    font-family: var(--font-stack);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border-bottom: none;
+
+    box-shadow:
+        0 4px 20px rgba(138, 43, 226, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 0.25s ease,
+                background-color 0.25s ease;
+}
+
+.download-cv-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.download-cv-btn:hover {
+    color: #fff;
+    background-color: rgba(138, 43, 226, 0.55);
+    border-bottom: none;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow:
+        0 8px 30px rgba(138, 43, 226, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+/* Respect accent-color theme changes */
+[data-theme="green"] .download-cv-btn {
+    background-color: rgba(39, 201, 63, 0.22);
+    border-color: rgba(39, 201, 63, 0.45);
+    box-shadow: 0 4px 20px rgba(39, 201, 63, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+[data-theme="green"] .download-cv-btn:hover {
+    background-color: rgba(39, 201, 63, 0.5);
+    box-shadow: 0 8px 30px rgba(39, 201, 63, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+[data-theme="amber"] .download-cv-btn {
+    background-color: rgba(255, 189, 46, 0.2);
+    border-color: rgba(255, 189, 46, 0.45);
+    box-shadow: 0 4px 20px rgba(255, 189, 46, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+[data-theme="amber"] .download-cv-btn:hover {
+    background-color: rgba(255, 189, 46, 0.45);
+    box-shadow: 0 8px 30px rgba(255, 189, 46, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+/* Mobile: icon-only pill to avoid overlap */
+@media (max-width: 768px) {
+    .download-cv-btn {
+        bottom: 18px;
+        right: 18px;
+        padding: 12px;
+        border-radius: 50%;
+    }
+    .download-cv-label {
+        display: none;
+    }
+    .download-cv-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
