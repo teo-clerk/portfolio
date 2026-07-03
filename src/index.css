@@ -4,7 +4,7 @@
     --text-color: #FFFFFF;
     --accent-color: #8A2BE2;
     --glass-border: rgba(255, 255, 255, 0.2);
-    --font-stack: 'Fira Code', monospace;
+    --font-stack: 'Fira Code', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 /* ── Themes ── */
@@ -54,10 +54,19 @@
 
 body {
     background-color: var(--bg-color);
-    background-image: url('/image_a022f1.jpg');
+    /* Progressive image loading: AVIF (203KB) → WebP (384KB) → JPG (406KB) */
+    background-image:
+        image-set(
+            url('/bg-hero.avif') type('image/avif'),
+            url('/bg-hero.webp') type('image/webp'),
+            url('/bg-hero.jpg')  type('image/jpeg')
+        );
+    /* Fallback for browsers without image-set support */
+    background-image: url('/bg-hero.webp');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
+    /* NOTE: background-attachment:fixed removed — it forces full-page
+       re-compositing on every frame, killing GPU performance and FCP */
     height: 100vh;
     height: 100dvh;
     width: 100vw;
@@ -79,15 +88,13 @@ body {
     align-items: center;
 }
 
+/* Dark overlay — avoids the expensive inherit+filter pattern
+   which was causing a SECOND full-res image decode */
 body::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: inherit;
-    filter: grayscale(100%) contrast(1.1) brightness(0.6);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
     z-index: -1;
 }
 

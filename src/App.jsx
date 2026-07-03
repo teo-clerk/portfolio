@@ -1,12 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Terminal from './components/Terminal';
-import CustomCursor from './components/CustomCursor';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-
 import { Analytics } from "@vercel/analytics/react";
 
-// Heavy components — loaded lazily so they never block FCP/LCP
+// Heavy / non-critical components — loaded lazily so they never block FCP/LCP
 const FloatingLines = lazy(() => import('./components/FloatingLines'));
+const CustomCursor = lazy(() => import('./components/CustomCursor'));
 
 // Detect low-power/mobile conditions
 const isLowPower = () => {
@@ -36,8 +35,10 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Custom cursor — hidden automatically on touch devices */}
-      <CustomCursor />
+      {/* Custom cursor — lazy loaded, non-critical, hidden on touch devices */}
+      <Suspense fallback={null}>
+        <CustomCursor />
+      </Suspense>
 
       {/* Floating 3D Lines — lazy loaded (Three.js ~600KB) so it never blocks FCP */}
       <Suspense fallback={null}>
