@@ -29,10 +29,18 @@
     padding: 0;
 }
 
-/* ── Custom cursor: hide native on desktop, keep on touch ── */
+/* ── Custom cursor: hide native on desktop, keep on touch ──
+   Scoped to body rather than a universal `cursor: none !important`, and never
+   applied while keyboard focus is visible — a user tabbing through the page
+   must always be able to see where they are. If the CustomCursor chunk fails
+   to load, `.cursor-ready` is never set and the native cursor stays. */
 @media (hover: hover) and (pointer: fine) {
-    *, *::before, *::after {
-        cursor: none !important;
+    body.cursor-ready,
+    body.cursor-ready * {
+        cursor: none;
+    }
+    body.cursor-ready *:focus-visible {
+        cursor: auto;
     }
 }
 
@@ -42,14 +50,61 @@
         animation: none !important;
         transition-duration: 0.01ms !important;
     }
+    /* The animated SVG displacement filter is motion too, and it is the most
+       expensive thing on the page. Drop it entirely. */
+    .terminal-glass {
+        filter: none !important;
+    }
 }
 
-/* ── Mobile performance: skip expensive backdrop-filter on small screens ── */
-@media (max-width: 768px) {
+/* ── Mobile performance ──
+   SVG filters are CPU-rasterized in most browsers. Stacking an animated
+   feTurbulence/feDisplacementMap on top of a backdrop-filter over the whole
+   panel is the single largest main-thread cost on mobile, so the filter is
+   dropped outright and the blur is softened. */
+@media (pointer: coarse), (max-width: 768px) {
     .terminal-glass {
-        backdrop-filter: blur(8px) !important;
-        -webkit-backdrop-filter: blur(8px) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        filter: none !important;
     }
+}
+
+/* The Snake D-pad is redundant where a keyboard is available. */
+@media (hover: hover) and (pointer: fine) {
+    .snake-dpad { display: none !important; }
+}
+
+/* ── Screen-reader-only text ── */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── CSS-only background for the low-capability device tier ──
+   Compositor-only (transform + opacity); no WebGL context, no `three` chunk. */
+.bg-fallback {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 80% at 30% 20%, #2f4ba2 0%, transparent 55%),
+        radial-gradient(100% 70% at 75% 80%, #e947f5 0%, transparent 50%);
+    opacity: 0.35;
+    animation: bgDrift 40s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@keyframes bgDrift {
+    to { transform: translate3d(0, -3%, 0) scale(1.06); }
 }
 
 body {
@@ -304,6 +359,15 @@ h1 {
 .command-highlight:hover {
     text-shadow: 0 0 8px var(--accent-color);
     text-decoration: underline;
+}
+
+/* Keyboard users get the same affordance as pointer users. These elements are
+   upgraded to role="button" + tabindex="0" at runtime by Terminal.jsx. */
+.command-highlight:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    border-radius: 3px;
+    text-shadow: 0 0 8px var(--accent-color);
 }
 
 .section-title {

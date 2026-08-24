@@ -1,24 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
+import { useTiltEffect } from '../hooks/useTiltEffect';
 import { PongGame } from './PongGame';
 import SnakeGame from './SnakeGame';
 import BootSequence from './BootSequence';
 import MatrixRain from './MatrixRain';
 
-
 // Component to render a single line of output
 const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => {
-  const { containerRef, isTyping, skip } = useTypewriter(content, onAnimationComplete);
+  const { containerRef, skip } = useTypewriter(content, onAnimationComplete);
 
   if (!isAnimated) {
     return <div className="output-line" dangerouslySetInnerHTML={{ __html: content }} />;
   }
 
   return (
-    <div 
-      ref={containerRef} 
-      className="output-line" 
+    <div
+      ref={containerRef}
+      className="output-line"
       onClick={skip}
     />
   );
@@ -28,8 +28,9 @@ const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => 
   if (!prevProps.isAnimated && !nextProps.isAnimated) return true;
   return prevProps.content === nextProps.content && prevProps.isAnimated === nextProps.isAnimated;
 });
+OutputLine.displayName = 'OutputLine';
 
-const Terminal = () => {
+const Terminal = ({ onOverlayChange }) => {
   const {
     history,
     inputVal,
@@ -53,83 +54,143 @@ const Terminal = () => {
   } = useTerminal();
 
   const turbulenceRef = useRef(null);
+  const wrapperRef = useRef(null);
 
-  // Liquid animation
+  const overlayActive = showGame || showMatrix || showDoom || showSnake;
+
+  // Report overlay state upward so the WebGL background can stop rendering
+  // while it is fully occluded.
   useEffect(() => {
-    // Detect Safari to disable heavy SVG animation
+    onOverlayChange?.(overlayActive);
+  }, [overlayActive, onOverlayChange]);
+
+  // Liquid distortion animation.
+  //
+  // SVG filters are CPU-rasterized in most browsers, and this one is stacked on
+  // top of a backdrop-filter over the whole panel. Safari was already opted out;
+  // coarse pointers and reduced-motion users now are too — index.css drops the
+  // filter entirely for them so there is nothing to animate.
+  useEffect(() => {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
-    if (isSafari) {
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (isSafari || coarse || reduced) {
       if (turbulenceRef.current) {
         turbulenceRef.current.setAttribute('baseFrequency', '0.005 0.005');
       }
-      return; // Do not start animation loop on Safari
+      return;
     }
 
     let frames = 0;
     let animationId;
-    
+
     const animate = () => {
       // Pause SVG filter calculations when heavy overlays are visible
-      if (!showGame && !showMatrix) {
-          if (frames % 3 === 0) {
-            const val = 0.005 + Math.sin(frames * 0.002) * 0.002;
-            if (turbulenceRef.current) {
-              turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
-            }
+      if (!overlayActive) {
+        if (frames % 3 === 0) {
+          const val = 0.005 + Math.sin(frames * 0.002) * 0.002;
+          if (turbulenceRef.current) {
+            turbulenceRef.current.setAttribute('baseFrequency', `0.005 ${val}`);
           }
-          frames++;
+        }
+        frames++;
       }
       animationId = requestAnimationFrame(animate);
     };
-    
+
     animate();
     return () => cancelAnimationFrame(animationId);
-  }, [showGame, showMatrix]);
+  }, [overlayActive]);
 
-  // Tilt effect
+  useTiltEffect(wrapperRef);
+
+  // Upgrade generated `.command-highlight` spans into real keyboard-operable
+  // controls. They are produced as raw HTML strings in dozens of places, so
+  // this is done once here by observation rather than at every call site.
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (window.innerWidth <= 768) {
-        const wrapper = document.getElementById('terminal-wrapper');
-        if (wrapper) wrapper.style.transform = 'none';
-        return;
-      }
-      const x = e.clientX;
-      const y = e.clientY;
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const maxRot = 5;
-      const rotX = ((y - centerY) / centerY) * -maxRot;
-      const rotY = ((x - centerX) / centerX) * maxRot;
-      
-      const wrapper = document.getElementById('terminal-wrapper');
-      if (wrapper) {
-        wrapper.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-      }
+    const body = terminalBodyRef.current;
+    if (!body) return;
+
+    const markup = (el) => {
+      if (!el.classList?.contains('command-highlight')) return;
+      if (el.hasAttribute('data-a11y')) return;
+      el.setAttribute('data-a11y', '1');
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      const cmd = el.getAttribute('data-cmd');
+      if (cmd) el.setAttribute('aria-label', `Run command: ${cmd}`);
     };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+
+    // The added node may itself be a chip (the typewriter appends each element
+    // before filling it), so match the node as well as its descendants.
+    const upgrade = (root) => {
+      if (root.nodeType !== Node.ELEMENT_NODE) return;
+      markup(root);
+      root.querySelectorAll?.('.command-highlight:not([data-a11y])').forEach(markup);
+    };
+
+    upgrade(body);
+    const mo = new MutationObserver((records) => {
+      records.forEach((r) => r.addedNodes.forEach(upgrade));
+    });
+    mo.observe(body, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [terminalBodyRef]);
+
+  const activateTarget = useCallback((target) => {
+    if (!target?.classList?.contains('command-highlight')) return false;
+    const cmd = target.getAttribute('data-cmd');
+    if (cmd) runCommand(cmd);
+    return true;
+  }, [runCommand]);
 
   const handleWrapperClick = (e) => {
-    if (e.target.classList.contains('command-highlight')) {
-      const cmd = e.target.getAttribute('data-cmd');
-      if (cmd) runCommand(cmd);
-      return;
-    }
+    if (activateTarget(e.target)) return;
     if (e.target.tagName === 'A') return;
     if (inputRef.current && !isTyping) {
       inputRef.current.focus();
     }
   };
 
-  const handleBootComplete = () => {
-    sessionStorage.setItem('booted', 'true');
+  const handleWrapperKeyDown = (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (!e.target?.classList?.contains('command-highlight')) return;
+    e.preventDefault();
+    activateTarget(e.target);
+  };
+
+  const handleBootComplete = useCallback(() => {
+    try {
+      sessionStorage.setItem('booted', 'true');
+    } catch {
+      /* storage blocked (private mode / embedded webview) — non-fatal */
+    }
     setShowBoot(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  };
+  }, [setShowBoot, inputRef]);
+
+  // Stable identity: MatrixRain's effect depends on this, and an inline arrow
+  // would tear down and restart the whole rain on every Terminal render.
+  const handleMatrixExit = useCallback(() => {
+    setShowMatrix(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [setShowMatrix, inputRef]);
+
+  const handleGameExit = useCallback(() => {
+    setShowGame(false);
+    setTimeout(() => inputRef.current?.focus(), 10);
+  }, [setShowGame, inputRef]);
+
+  const handleSnakeExit = useCallback(() => {
+    setShowSnake(false);
+    setTimeout(() => inputRef.current?.focus(), 10);
+  }, [setShowSnake, inputRef]);
+
+  const handleDoomExit = useCallback(() => {
+    setShowDoom(false);
+    setTimeout(() => inputRef.current?.focus(), 10);
+  }, [setShowDoom, inputRef]);
 
   return (
     <>
@@ -137,24 +198,19 @@ const Terminal = () => {
       {showBoot && <BootSequence onComplete={handleBootComplete} />}
 
       {/* Matrix rain overlay */}
-      {showMatrix && (
-        <MatrixRain onExit={() => {
-          setShowMatrix(false);
-          setTimeout(() => inputRef.current?.focus(), 50);
-        }} />
-      )}
+      {showMatrix && <MatrixRain onExit={handleMatrixExit} />}
 
       <div className="scanlines"></div>
-      
-      <svg className="svg-filters">
+
+      <svg className="svg-filters" aria-hidden="true">
         <defs>
           <filter id="liquid-distortion">
-            <feTurbulence 
+            <feTurbulence
               ref={turbulenceRef}
-              type="fractalNoise" 
-              baseFrequency="0.005 0.005" 
-              numOctaves="1" 
-              result="noise" 
+              type="fractalNoise"
+              baseFrequency="0.005 0.005"
+              numOctaves="1"
+              result="noise"
               seed="1"
             />
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" xChannelSelector="R" yChannelSelector="G" />
@@ -162,9 +218,15 @@ const Terminal = () => {
         </defs>
       </svg>
 
-      <div className="terminal-wrapper" id="terminal-wrapper" onClick={handleWrapperClick}>
+      <div
+        className="terminal-wrapper"
+        id="terminal-wrapper"
+        ref={wrapperRef}
+        onClick={handleWrapperClick}
+        onKeyDown={handleWrapperKeyDown}
+      >
         <div className="terminal-glass"></div>
-        
+
         <div className="terminal-content">
           <div className="terminal-header">
             <div className="traffic-lights">
@@ -174,12 +236,20 @@ const Terminal = () => {
             </div>
             <div className="terminal-title">visitor@teoclericijurado: ~</div>
           </div>
-          
-          <div className="terminal-body" id="terminal-body" ref={terminalBodyRef}>
+
+          <div
+            className="terminal-body"
+            id="terminal-body"
+            ref={terminalBodyRef}
+            role="log"
+            aria-live="polite"
+            aria-atomic="false"
+            aria-label="Terminal output"
+          >
             {history.map((item, index) => (
-              <OutputLine 
-                key={item.id} 
-                content={item.content} 
+              <OutputLine
+                key={item.id}
+                content={item.content}
                 isAnimated={item.isAnimated}
                 onAnimationComplete={() => {
                   if (index === history.length - 1) {
@@ -189,17 +259,15 @@ const Terminal = () => {
                 }}
               />
             ))}
-            
-            {showGame && (
-              <PongGame onExit={() => {
-                setShowGame(false);
-                setTimeout(() => inputRef.current?.focus(), 10);
-              }} />
-            )}
-            
+
+            {showGame && <PongGame onExit={handleGameExit} />}
+
             {showDoom && (
-              <div 
+              <div
                 onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="DOOM"
                 style={{
                   position: 'absolute',
                   inset: 0,
@@ -211,58 +279,60 @@ const Terminal = () => {
                   borderRadius: '12px'
                 }}
               >
-                <div 
+                <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowDoom(false);
-                    setTimeout(() => inputRef.current?.focus(), 10);
+                    handleDoomExit();
                   }}
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    padding: '15px 25px', 
-                    backgroundColor: '#B22222', 
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '15px 25px',
+                    backgroundColor: '#B22222',
                     borderBottom: '2px solid #fff',
+                    border: 'none',
+                    width: '100%',
                     cursor: 'pointer',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    font: 'inherit'
                   }}
                 >
-                  <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>DOOM.EXE (Click this bar to close)</div>
-                  <button 
+                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                    DOOM.EXE (Click this bar to close)
+                  </span>
+                  <span
                     style={{
-                      background: '#fff', border: 'none', color: '#B22222', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '1.2rem', fontWeight: 'bold', padding: '8px 16px', borderRadius: '6px'
+                      background: '#fff', color: '#B22222', fontFamily: 'var(--font-mono)',
+                      fontSize: '1.2rem', fontWeight: 'bold', padding: '8px 16px', borderRadius: '6px'
                     }}
                   >
                     X CLOSE
-                  </button>
-                </div>
-                <iframe 
-                  src="https://silentspacemarine.com/" 
+                  </span>
+                </button>
+                <iframe
+                  src="https://silentspacemarine.com/"
                   style={{ width: '100%', height: '100%', border: 'none' }}
                   title="DOOM"
                 />
               </div>
             )}
-            
-            {showSnake && (
-              <SnakeGame onExit={() => {
-                setShowSnake(false);
-                setTimeout(() => inputRef.current?.focus(), 10);
-              }} />
-            )}
-            
+
+            {showSnake && <SnakeGame onExit={handleSnakeExit} />}
+
             <div className="input-line">
               <span className="prompt">visitor@teoclericijurado:~$</span>
-              <input 
+              <input
                 ref={inputRef}
-                type="text" 
+                type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isTyping || showGame}
                 placeholder={!inputVal && !isTyping ? "type 'help' to see commands..." : ""}
-                autoComplete="off" 
-                spellCheck="false" 
+                aria-label="Terminal command input"
+                autoComplete="off"
+                spellCheck="false"
                 autoFocus={!showBoot}
               />
             </div>

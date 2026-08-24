@@ -1,41 +1,75 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Speed in ms per chunk
-const TYPE_SPEED = 1; 
-// Characters to type per tick (increase for faster speed)
-// MODIFY HERE TO CHANGE SPEED: Higher number = Faster
+// Characters appended per tick. Higher = faster.
 const CHARS_PER_TICK = 6;
 
+/**
+ * Types HTML content into a container node-by-node.
+ *
+ * Two performance notes:
+ *
+ *  - Scrolling is coalesced to one write per animation frame. The previous
+ *    version read `scrollHeight` (a layout-forcing read) after every 6
+ *    characters, which for a ~2,000 character help screen meant ~330 forced
+ *    synchronous reflows per command.
+ *
+ *  - Pacing uses rAF rather than `setTimeout(1)`. Nested timeouts are clamped
+ *    to ~4ms after depth 5, so the old TYPE_SPEED of 1ms was never real.
+ */
 export const useTypewriter = (htmlContent, onComplete) => {
     const containerRef = useRef(null);
     const [isTyping, setIsTyping] = useState(true);
     const skipRef = useRef(false);
 
+    // Held in a ref so a changing callback identity never restarts the animation.
+    const onCompleteRef = useRef(onComplete);
+    useEffect(() => {
+        onCompleteRef.current = onComplete;
+    }, [onComplete]);
+
     useEffect(() => {
         if (!containerRef.current || !htmlContent) return;
 
         const container = containerRef.current;
-        container.innerHTML = ''; // Clear initial content
-        
-        // Create temp div to parse HTML
+        container.innerHTML = '';
+
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        
+
         let isCancelled = false;
+        let scrollQueued = false;
+        let scrollRaf = 0;
+
+        const queueScroll = () => {
+            if (scrollQueued) return;
+            scrollQueued = true;
+            scrollRaf = requestAnimationFrame(() => {
+                scrollQueued = false;
+                const body = document.getElementById('terminal-body');
+                if (body) body.scrollTop = body.scrollHeight;
+            });
+        };
+
+        const nextFrame = () => new Promise((resolve) => {
+            scrollRaf = requestAnimationFrame(resolve);
+        });
+
+        // Users who asked for reduced motion get the finished output at once.
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) skipRef.current = true;
 
         const typeNode = async (node, parent) => {
             if (isCancelled) return;
-            
+
             if (skipRef.current) {
-                const clone = node.cloneNode(true);
-                parent.appendChild(clone);
+                parent.appendChild(node.cloneNode(true));
                 return;
             }
 
             if (node.nodeType === Node.TEXT_NODE) {
                 const text = node.textContent;
                 let i = 0;
-                
+
                 while (i < text.length) {
                     if (isCancelled) return;
                     if (skipRef.current) {
@@ -43,61 +77,55 @@ export const useTypewriter = (htmlContent, onComplete) => {
                         break;
                     }
 
-                    // Append a chunk of characters
-                    const chunk = text.substring(i, i + CHARS_PER_TICK);
-                    parent.append(chunk);
+                    parent.append(text.substring(i, i + CHARS_PER_TICK));
                     i += CHARS_PER_TICK;
 
-                    // Scroll to bottom
-                    const terminalBody = document.getElementById('terminal-body');
-                    if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                    
-                    await new Promise(r => setTimeout(r, TYPE_SPEED));
+                    queueScroll();
+                    await nextFrame();
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 const el = node.cloneNode(false);
                 parent.appendChild(el);
-                
-                // CRITICAL FIX: Skip typing character-by-character for large ascii-art divs
-                // This prevents the infinite recursive rendering loop that freezes the browser on reload
+
+                // Large ASCII art is inserted wholesale rather than typed. Walking
+                // it character-by-character used to freeze the browser.
                 if (el.classList && el.classList.contains('ascii-art')) {
                     el.innerHTML = node.innerHTML;
-                    const terminalBody = document.getElementById('terminal-body');
-                    if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                    await new Promise(r => setTimeout(r, 5));
-                    return; // Skip walking children
-                }
-                
-                if (el.tagName === 'BR') {
-                    const terminalBody = document.getElementById('terminal-body');
-                    if (terminalBody) terminalBody.scrollTop = terminalBody.scrollHeight;
-                    await new Promise(r => setTimeout(r, 5)); // Reduced pause for newlines
+                    queueScroll();
+                    await nextFrame();
+                    return;
                 }
 
-                if (node.childNodes.length > 0) {
-                    for (const child of node.childNodes) {
-                        await typeNode(child, el);
-                    }
+                if (el.tagName === 'BR') {
+                    queueScroll();
+                    await nextFrame();
+                }
+
+                for (const child of node.childNodes) {
+                    await typeNode(child, el);
                 }
             }
         };
 
         const startTyping = async () => {
             setIsTyping(true);
-            skipRef.current = false;
-            
+            if (!reduced) skipRef.current = false;
+
             for (const child of tempDiv.childNodes) {
                 await typeNode(child, container);
             }
-            
+
+            if (isCancelled) return;
+            queueScroll();
             setIsTyping(false);
-            if (onComplete) onComplete();
+            onCompleteRef.current?.();
         };
 
         startTyping();
 
         return () => {
             isCancelled = true;
+            if (scrollRaf) cancelAnimationFrame(scrollRaf);
         };
     }, [htmlContent]);
 
