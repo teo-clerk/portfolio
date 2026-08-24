@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-    cvData, asciiArt, asciiArtMobile, asciiArtFull, commandsList
-} from '../data/cvData';
-import { commandExecutors, dynamicCommandExecutors } from './commandExecutors';
+import { asciiArt, asciiArtMobile, asciiArtFull } from '../data/cvData';
+import { resolveCommand, commandsList } from '../commands/registry';
 import { escapeHtml } from '../utils/escapeHtml';
 import { readStorage } from '../utils/storage';
 
@@ -198,28 +196,22 @@ export const useTerminal = () => {
             commandHistory, setCommandHistory, setHistoryIndex, setTourQueue
         };
 
-        let result = null;
-
-        // Pattern matching for exact commands
-        if (commandExecutors[lowerCmd]) {
-            result = commandExecutors[lowerCmd](ctx);
-        } else {
-            // Pattern matching for dynamic commands (e.g. startsWith)
-            const dynamicExecutor = dynamicCommandExecutors.find(e => e.match(lowerCmd));
-            if (dynamicExecutor) {
-                result = dynamicExecutor.execute(trimmedCmd, ctx);
-            }
-        }
+        // Exact match, then pattern match. CV content commands are ordinary
+        // registry entries now, so there is no cvData fallback to consult.
+        const resolved = resolveCommand(lowerCmd);
+        const result = resolved
+            ? (resolved.isDynamic
+                ? resolved.command.runDynamic(trimmedCmd, ctx)
+                : resolved.command.run(ctx))
+            : null;
 
         if (result && result.earlyReturn) return;
 
         let outputContent = result ? result.outputContent : '';
         let shouldAnimate = result && result.shouldAnimate !== undefined ? result.shouldAnimate : true;
-        let specialAction = result ? result.specialAction : null;
+        const specialAction = result ? result.specialAction : null;
 
-        if (!result && cvData[lowerCmd]) {
-            outputContent = cvData[lowerCmd];
-        } else if (!result) {
+        if (!result) {
             outputContent = `<div>Command not found: <span class="command-highlight" data-cmd="help">${escapeHtml(trimmedCmd)}</span>. Type 'help' for available commands.</div><br>`;
             shouldAnimate = false;
         }

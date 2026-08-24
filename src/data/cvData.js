@@ -98,70 +98,8 @@ AI &amp; Machine Learning, Astrophysics, High-Altitude Hiking, Astrophotography,
 `
 };
 
-export const helpText = `
-<div class="help-container">
-  <div class="section-title">AVAILABLE COMMANDS</div>
-  <br>
-  <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── CV / INFO ──────────────────────────────</div>
-  <div class="help-grid">
-    <div class="help-item"><span class="command-highlight" data-cmd="whoami">whoami</span><span class="help-desc">Quick identity card</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="about">about</span><span class="help-desc">Professional summary</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="education">education</span><span class="help-desc">Academic background</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="experience">experience</span><span class="help-desc">Work history</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="projects">projects</span><span class="help-desc">Initiatives &amp; Projects</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="skills">skills</span><span class="help-desc">Technical &amp; Soft skills</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="certifications">certifications</span><span class="help-desc">Certificates &amp; Awards</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="languages">languages</span><span class="help-desc">Spoken languages</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="interests">interests</span><span class="help-desc">Personal interests</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="contact">contact</span><span class="help-desc">Contact information</span></div>
-  </div>
-  <br>
-  <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── ACTIONS ────────────────────────────────</div>
-  <div class="help-grid">
-    <div class="help-item"><span class="command-highlight" data-cmd="download">download</span><span class="help-desc">Download my CV (PDF)</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="open linkedin">open linkedin</span><span class="help-desc">Open LinkedIn profile</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="open github">open github</span><span class="help-desc">Open GitHub profile</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="open email">open email</span><span class="help-desc">Send me an email</span></div>
-  </div>
-  <br>
-  <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── TERMINAL ───────────────────────────────</div>
-  <div class="help-grid">
-    <div class="help-item"><span class="command-highlight" data-cmd="theme">theme</span><span class="help-desc">Switch color theme (purple/green/amber)</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="fortune">fortune</span><span class="help-desc">Random inspirational quote</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="randomart">randomart</span><span class="help-desc">Random ASCII art from the vault</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="game">game</span><span class="help-desc">Play Pong 🏓</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="snake">snake</span><span class="help-desc">Play Snake 🐍</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="ls">ls</span><span class="help-desc">List directory contents</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="teofetch">teofetch</span><span class="help-desc">System info script</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="htop">htop</span><span class="help-desc">Task manager</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="weather venice">weather [city]</span><span class="help-desc">Get current weather</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="cowsay hello">cowsay [msg]</span><span class="help-desc">ASCII cow message</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="lofi">lofi</span><span class="help-desc">Toggle lofi radio 📻</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="volume 75">volume [0-100]</span><span class="help-desc">Set global audio volume</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="history">history</span><span class="help-desc">View command history</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="map">map</span><span class="help-desc">Show interactive map 🗺️</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="calc 5*4">calc [math]</span><span class="help-desc">Evaluate math</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="matrix">matrix</span><span class="help-desc">Enter the Matrix 🕶️</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="ask who are you?">ask [question]</span><span class="help-desc">Chat with Teo's AI</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="lang es">lang [lang]</span><span class="help-desc">Change interface language</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="email">email</span><span class="help-desc">Send me an email</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="clear">clear</span><span class="help-desc">Clear the terminal</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="recruiter">recruiter</span><span class="help-desc">Get the quick summary & CV</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="tour">tour</span><span class="help-desc">Take an automated tour</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="doom">doom</span><span class="help-desc">Play DOOM classic</span></div>
-    <div class="help-item"><span class="command-highlight" data-cmd="help">help</span><span class="help-desc">Show this help</span></div>
-  </div>
-  <br>
-  <div style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.1em;">── EASTER EGGS ────────────────────────────</div>
-  <div class="help-grid">
-    <div style="grid-column: 1 / -1; color:#aaa; font-style:italic;">
-      There are several hidden easter eggs scattered throughout this terminal.<br>
-      Try to find them all! <br>(Hint: Type <span class="command-highlight" data-cmd="easter eggs">easter eggs</span> if you give up).
-    </div>
-  </div>
-</div>
-`;
-
+// helpText now lives in src/commands/registry.js, derived from the command
+// modules themselves so it can never drift from what is actually registered.
 export const whoamiText = `
 <div class="whoami-card">
   <div class="whoami-row"><span class="whoami-label">name</span><span class="whoami-value">Teo Clerici Jurado</span></div>
@@ -896,34 +834,4 @@ export const emailText = `
 <div style="color:#aaa;">Initializing mail protocol...</div><br>`;
 
 
-export const commandsList = [
-    'help', 'about', 'education', 'experience', 'projects', 'skills',
-    'certifications', 'languages', 'interests', 'contact', 'email', 'clear',
-    'commands',
-    'game', 'whoami', 'download', 'open', 'open linkedin', 'open github', 'open email',
-    'theme', 'theme purple', 'theme green', 'theme amber',
-    'fortune', 'sudo', 'matrix', 'exit', 'quit', 'funfact',
-    'interstellar', 'cooper', 'tars', 'gargantua', 'black hole',
-    'ls', 'ls -la', 'pwd', 'date', 'randomart',
-    'accio', 'accio cv', 'accio resume',
-    'avengers', 'avengers assemble',
-    'expecto', 'expecto patronum',
-    'wingardium', 'wingardium leviosa',
-    'yoda', 'master yoda', 'vader', 'darth vader',
-    'r2d2', 'r2-d2', 'starwars', 'star wars', 'may the force', 'may the force be with you',
-    'totoro', 'ghibli', 'studio ghibli', 'spirited', 'spirited away', 'chihiro',
-    'spiderman', 'spider-man', 'peter parker', 'miles morales',
-    'pascal', 'rapunzel', 'camaleon', 'chameleon',
-    'easter eggs', 'eastereggs', 'easteregg',
-    'groot', 'i am groot',
-    'guardians', 'guardians of the galaxy',
-    'starlord', 'star lord', 'peter quill',
-    'ironman', 'iron man', 'tony stark',
-    'cat', 'pato', 'duck',
-    'astrofact',
-    'ask', 'chat', 'teofetch', 'htop', 'top',
-    'weather', 'cowsay', 'lofi', 'rain',
-    'volume', 'hack', 'snake',
-    'history', 'map', 'lang', 'lang en', 'lang es', 'lang it', 'lang ca',
-    'calc'
-];
+// commandsList is likewise derived — see src/commands/registry.js.
