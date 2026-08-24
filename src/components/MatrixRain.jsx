@@ -2,72 +2,108 @@ import { useEffect, useRef } from 'react';
 
 const CHARS = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEF<>[]{}|';
 const FONT_SIZE = 16;
+const EXIT_GUARD_MS = 400;
 
 const MatrixRain = ({ onExit }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const coarse = window.matchMedia('(pointer: coarse)').matches;
+        const step = coarse ? FONT_SIZE * 1.5 : FONT_SIZE;
+
+        // Column state survives resize. Previously `columns` and `drops` were
+        // computed once at mount while the canvas kept resizing under them, so
+        // after a rotation the rain either stopped short or drew off-canvas.
+        let drops = [];
 
         const resize = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            const cssWidth = window.innerWidth;
+            const cssHeight = window.innerHeight;
+
+            canvas.width = Math.floor(cssWidth * dpr);
+            canvas.height = Math.floor(cssHeight * dpr);
+            canvas.style.width = `${cssWidth}px`;
+            canvas.style.height = `${cssHeight}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.font = `${step}px 'Fira Code', monospace`;
+
+            const columns = Math.ceil(cssWidth / step);
+            drops = Array.from({ length: columns }, (_, i) => drops[i] ?? 1);
         };
+
         resize();
         window.addEventListener('resize', resize);
 
-        // Adaptive: use fewer visual columns on small screens
-        const step = window.innerWidth <= 768 ? FONT_SIZE * 1.5 : FONT_SIZE;
-        const columns = Math.floor(canvas.width / step);
-        const drops = Array(columns).fill(1);
-
         const draw = () => {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const cssHeight = window.innerHeight;
+            const cssWidth = window.innerWidth;
 
-            drops.forEach((drop, i) => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+            for (let i = 0; i < drops.length; i++) {
                 const char = CHARS[Math.floor(Math.random() * CHARS.length)];
                 const brightness = Math.random();
 
+                // Canvas shadows are among the most expensive 2D operations
+                // there is, so they are skipped entirely on touch devices.
                 if (brightness > 0.95) {
                     ctx.fillStyle = '#fff';
-                    ctx.shadowColor = '#27c93f';
-                    ctx.shadowBlur = 8;
+                    if (!coarse) {
+                        ctx.shadowColor = '#27c93f';
+                        ctx.shadowBlur = 8;
+                    }
                 } else {
                     ctx.fillStyle = `rgba(39, 201, 63, ${0.4 + brightness * 0.6})`;
                     ctx.shadowBlur = 0;
                 }
 
-                ctx.font = `${step}px 'Fira Code', monospace`;
-                ctx.fillText(char, i * step, drop * step);
+                ctx.fillText(char, i * step, drops[i] * step);
                 ctx.shadowBlur = 0;
 
-                if (drop * step > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * step > cssHeight && Math.random() > 0.975) {
                     drops[i] = 0;
                 }
                 drops[i]++;
-            });
+            }
         };
 
-        // Adaptive frame rate: 25fps desktop, 15fps mobile
-        const fps = window.innerWidth <= 768 ? 67 : 40;
-        const interval = setInterval(draw, fps);
+        // rAF rather than setInterval: the browser throttles it correctly in
+        // background tabs, where setInterval would keep burning CPU.
+        const FRAME_MS = coarse ? 67 : 40;
+        let raf = 0;
+        let last = 0;
+
+        const loop = (t) => {
+            raf = requestAnimationFrame(loop);
+            if (t - last < FRAME_MS) return;
+            last = t;
+            draw();
+        };
+        raf = requestAnimationFrame(loop);
 
         const openedAt = Date.now();
         const handleKey = (e) => {
             if (e.key === 'q' || e.key === 'Escape' || e.key === 'Enter') onExit();
         };
-        // Guard: ignore clicks within 400ms of mount (prevents the opening click from closing it)
+        // Ignore clicks fired within the guard window so the click that opened
+        // the overlay does not immediately close it.
         const handleClick = () => {
-            if (Date.now() - openedAt > 400) onExit();
+            if (Date.now() - openedAt > EXIT_GUARD_MS) onExit();
         };
+
         window.addEventListener('keydown', handleKey);
         window.addEventListener('click', handleClick);
         window.addEventListener('touchend', handleClick);
 
         return () => {
-            clearInterval(interval);
+            cancelAnimationFrame(raf);
             window.removeEventListener('resize', resize);
             window.removeEventListener('keydown', handleKey);
             window.removeEventListener('click', handleClick);
@@ -76,13 +112,18 @@ const MatrixRain = ({ onExit }) => {
     }, [onExit]);
 
     return (
-        <div style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 999,
-            background: '#000',
-        }}>
-            <canvas ref={canvasRef} style={{ display: 'block' }} />
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Matrix rain. Press any key or click to exit."
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 999,
+                background: '#000',
+            }}
+        >
+            <canvas ref={canvasRef} aria-hidden="true" style={{ display: 'block' }} />
             <div style={{
                 position: 'absolute',
                 bottom: '2rem',
