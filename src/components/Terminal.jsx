@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useTiltEffect } from '../hooks/useTiltEffect';
@@ -6,6 +6,8 @@ import { PongGame } from './PongGame';
 import SnakeGame from './SnakeGame';
 import BootSequence from './BootSequence';
 import MatrixRain from './MatrixRain';
+import CommandPalette from './CommandPalette';
+import CommandChips from './CommandChips';
 
 // Component to render a single line of output
 const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => {
@@ -55,6 +57,7 @@ const Terminal = ({ onOverlayChange }) => {
 
   const turbulenceRef = useRef(null);
   const wrapperRef = useRef(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const overlayActive = showGame || showMatrix || showDoom || showSnake;
 
@@ -104,6 +107,24 @@ const Terminal = ({ onOverlayChange }) => {
   }, [overlayActive]);
 
   useTiltEffect(wrapperRef);
+
+  // Cmd/Ctrl+K opens the palette from anywhere, including while the terminal
+  // input is disabled mid-animation.
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const closePalette = useCallback(() => {
+    setPaletteOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 10);
+  }, [inputRef]);
 
   // Upgrade generated `.command-highlight` spans into real keyboard-operable
   // controls. They are produced as raw HTML strings in dozens of places, so
@@ -199,6 +220,8 @@ const Terminal = ({ onOverlayChange }) => {
 
       {/* Matrix rain overlay */}
       {showMatrix && <MatrixRain onExit={handleMatrixExit} />}
+
+      {paletteOpen && <CommandPalette onClose={closePalette} onRun={runCommand} />}
 
       <div className="scanlines"></div>
 
@@ -320,6 +343,9 @@ const Terminal = ({ onOverlayChange }) => {
 
             {showSnake && <SnakeGame onExit={handleSnakeExit} />}
 
+            {/* Touch-only quick commands: Tab-completion is desktop-only */}
+            <CommandChips onRun={runCommand} disabled={isTyping || showGame} />
+
             <div className="input-line">
               <span className="prompt">visitor@teoclericijurado:~$</span>
               <input
@@ -329,7 +355,7 @@ const Terminal = ({ onOverlayChange }) => {
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isTyping || showGame}
-                placeholder={!inputVal && !isTyping ? "type 'help' to see commands..." : ""}
+                placeholder={!inputVal && !isTyping ? "type 'help' — or press \u2318K" : ""}
                 aria-label="Terminal command input"
                 autoComplete="off"
                 spellCheck="false"

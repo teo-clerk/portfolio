@@ -757,3 +757,150 @@ a:hover {
         height: 20px;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Command palette (⌘K / Ctrl+K)
+   ══════════════════════════════════════════════════════════════════ */
+
+.palette-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(1rem, 10vh, 8rem) 1rem 1rem;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.palette {
+    width: min(640px, 100%);
+    max-height: min(70vh, 520px);
+    display: flex;
+    flex-direction: column;
+    background: rgba(16, 16, 20, 0.96);
+    border: 1px solid var(--accent-color);
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    overflow: hidden;
+}
+
+.palette-input {
+    width: 100%;
+    padding: 1rem 1.15rem;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    color: var(--text-color);
+    font-family: var(--font-stack);
+    /* 16px minimum, or iOS Safari zooms the viewport on focus */
+    font-size: 16px;
+    outline: none;
+}
+
+.palette-input::placeholder { color: #6f6f7a; }
+
+.palette-results {
+    list-style: none;
+    margin: 0;
+    padding: 0.35rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.palette-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.palette-row[data-active="true"] {
+    background: color-mix(in srgb, var(--accent-color) 26%, transparent);
+}
+
+.palette-cmd {
+    color: var(--accent-color);
+    font-weight: bold;
+    white-space: nowrap;
+    min-width: 8.5rem;
+}
+
+.palette-desc {
+    color: #b9b9c4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.palette-empty {
+    padding: 1.1rem 0.9rem;
+    color: #8a8a95;
+    font-size: 0.9rem;
+}
+
+.palette-hint {
+    display: flex;
+    gap: 1.1rem;
+    padding: 0.55rem 1.15rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #7c7c88;
+    font-size: 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Mobile quick-command chips
+   Tab-completion is desktop-only, so touch users get a visible,
+   tappable way to discover what the terminal accepts.
+   ══════════════════════════════════════════════════════════════════ */
+
+.command-chips { display: none; }
+
+@media (pointer: coarse) {
+    .command-chips {
+        display: block;
+        margin: 0 0 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        padding-top: 0.55rem;
+    }
+
+    .command-chips__list {
+        display: flex;
+        gap: 0.45rem;
+        margin: 0;
+        padding: 0 0 0.2rem;
+        list-style: none;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .command-chips__list::-webkit-scrollbar { display: none; }
+
+    .command-chip {
+        white-space: nowrap;
+        padding: 0.42rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--accent-color) 55%, transparent);
+        background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+        color: var(--text-color);
+        font-family: var(--font-stack);
+        font-size: 0.8rem;
+        cursor: pointer;
+        /* Comfortably above the 24px WCAG 2.2 target-size minimum */
+        min-height: 34px;
+        touch-action: manipulation;
+    }
+
+    .command-chip:disabled { opacity: 0.45; }
+    .command-chip:focus-visible {
+        outline: 2px solid var(--accent-color);
+        outline-offset: 2px;
+    }
+}
