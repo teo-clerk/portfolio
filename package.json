@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "generate:cv": "node scripts/generate-cv.mjs",
+    "predev": "npm run generate:cv",
     "dev": "vite",
+    "prebuild": "npm run generate:cv",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

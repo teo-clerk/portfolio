@@ -9,7 +9,9 @@
  *
  * @typedef {Object} Command
  * @property {string}   name         Primary name, also the Tab-completion entry.
- * @property {string}   [aliasOf]    Set on alternate spellings; hides the row from `help`.
+ * @property {string[]} [aliases]    Extra spellings registered to this same command.
+ * @property {string}   [aliasOf]    Set on a standalone entry that duplicates
+ *                                   another command; hides the row from `help`.
  * @property {string}   [description] Omit to keep the command out of `help` entirely.
  * @property {'cv'|'actions'|'terminal'|'egg'} category
  * @property {(ctx: object) => CommandResult} [run]        Exact-match commands.

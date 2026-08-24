@@ -29,14 +29,21 @@ const exactModules = [
 /** name -> Command, for O(1) exact lookup. */
 export const registry = new Map();
 
-for (const command of exactModules) {
-  if (registry.has(command.name)) {
-    const message = `Duplicate command registration: "${command.name}"`;
+const register = (name, command) => {
+  if (registry.has(name)) {
+    const message = `Duplicate command registration: "${name}"`;
     if (import.meta.env.DEV) throw new Error(message);
     console.error(message);
-    continue;
+    return;
   }
-  registry.set(command.name, command);
+  registry.set(name, command);
+};
+
+for (const command of exactModules) {
+  register(command.name, command);
+  // `aliases` registers extra spellings against the same command; `aliasOf` is
+  // the inverse, used by legacy entries that carry their own body.
+  for (const alias of command.aliases ?? []) register(alias, command);
 }
 
 /** Ordered list of pattern-matched commands. Order is significant. */

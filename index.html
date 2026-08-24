@@ -145,10 +145,15 @@
         Junior Consultant at Lumina Consulting Agency, and Educational Mentor with the
         MIT Edgerton Center.</p>
         <p>This portfolio is an interactive terminal and needs JavaScript.
-        You can still <a href="/CV.pdf">download the CV (PDF)</a> or email
+        Read the <a href="/cv">plain-text CV</a>,
+        <a href="/CV.pdf">download the PDF</a>, or email
         <a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a>.</p>
       </div>
     </noscript>
+    <!-- Crawlable link to the static CV. Visually hidden but focusable, so it
+         also gives keyboard users an escape hatch out of the terminal UI. -->
+    <a href="/cv" style="position:absolute;left:-9999px;top:0;background:#8A2BE2;color:#fff;padding:.6rem 1rem;z-index:10000;"
+       onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Plain-text CV</a>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

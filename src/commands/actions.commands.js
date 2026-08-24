@@ -55,5 +55,16 @@ export const actionCommands = [
         shouldAnimate: false,
         specialAction: () => setTimeout(() => window.location.href = 'mailto:clerici.teo5@gmail.com', 1000)
     }),
-  }
+  },
+  {
+    name: "cv",
+    aliases: ["plain", "a11y"],
+    description: "Open the plain-text CV page",
+    category: "actions",
+    run: () => ({
+      outputContent: `<div>Opening the <a href="/cv">plain-text CV</a> — a static, screen-reader friendly version of everything in this terminal.</div><br>`,
+      shouldAnimate: false,
+      specialAction: () => window.open('/cv', '_blank', 'noopener'),
+    }),
+  },
 ];
