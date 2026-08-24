@@ -3,6 +3,8 @@ import {
     cvData, asciiArt, asciiArtMobile, asciiArtFull, commandsList
 } from '../data/cvData';
 import { commandExecutors, dynamicCommandExecutors } from './commandExecutors';
+import { escapeHtml } from '../utils/escapeHtml';
+import { readStorage } from '../utils/storage';
 
 const THEMES = {
     purple: { accent: '#8A2BE2', bg: 'rgba(20, 20, 20, 0.5)' },
@@ -38,6 +40,16 @@ export const useTerminal = () => {
     const terminalBodyRef = useRef(null);
     const audioRefs = useRef({});
 
+    // Mirror of globalVolume. playSound is captured by the mount-only konami
+    // listener, which otherwise pins volume at its initial value forever.
+    const volumeRef = useRef(globalVolume);
+
+    // Latest runCommand, for callers that must not re-subscribe when it changes.
+    const runCommandRef = useRef(null);
+    useEffect(() => {
+        volumeRef.current = globalVolume;
+    }, [globalVolume]);
+
     const getAsciiArt = () => {
         if (window.innerWidth > 1200) return asciiArtFull;
         if (window.innerWidth > 768) return asciiArt;
@@ -47,7 +59,7 @@ export const useTerminal = () => {
     const playSound = (soundFileName) => {
         try {
             const audio = new Audio(`/sounds/${soundFileName}`);
-            audio.volume = globalVolume;
+            audio.volume = volumeRef.current;
             audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
         } catch (error) {
             console.error('Failed to play sound', error);
@@ -64,7 +76,7 @@ export const useTerminal = () => {
             } else {
                 const audio = new Audio(`/sounds/${soundName}`);
                 audio.loop = true;
-                audio.volume = globalVolume;
+                audio.volume = volumeRef.current;
                 audio.play().catch(e => console.warn('Audio playback prevented by browser', e));
                 audioRefs.current[soundName] = audio;
                 return true;
@@ -76,7 +88,7 @@ export const useTerminal = () => {
     };
 
     useEffect(() => {
-        if (sessionStorage.getItem('booted') === 'true') {
+        if (readStorage('sessionStorage', 'booted') === 'true') {
             setShowBoot(false);
         }
 
@@ -130,16 +142,35 @@ export const useTerminal = () => {
         });
     }, [globalVolume]);
 
-    // Handle automated tour execution
+    // Looping ambience (lofi / rain) outlived the component, so it kept
+    // playing after unmount with no handle left to stop it.
     useEffect(() => {
-        if (!isTyping && tourQueue.length > 0) {
-            const nextCmd = tourQueue[0];
-            const timeout = setTimeout(() => {
-                setTourQueue(prev => prev.slice(1));
-                runCommand(nextCmd);
-            }, 1000);
-            return () => clearTimeout(timeout);
-        }
+        const audios = audioRefs.current;
+        return () => {
+            Object.values(audios).forEach(audio => {
+                try {
+                    audio?.pause();
+                } catch {
+                    /* element already torn down */
+                }
+            });
+            Object.keys(audios).forEach(key => delete audios[key]);
+        };
+    }, []);
+
+    // Handle automated tour execution.
+    // runCommand is re-created every render, so it is read through a ref here:
+    // listing it as a dependency would restart the tour timer on every render,
+    // and omitting it outright would capture a stale closure.
+    useEffect(() => {
+        if (isTyping || tourQueue.length === 0) return;
+
+        const nextCmd = tourQueue[0];
+        const timeout = setTimeout(() => {
+            setTourQueue(prev => prev.slice(1));
+            runCommandRef.current?.(nextCmd);
+        }, 1000);
+        return () => clearTimeout(timeout);
     }, [isTyping, tourQueue]);
 
     const runCommand = (cmd) => {
@@ -152,7 +183,7 @@ export const useTerminal = () => {
         
         newHistory.push({
             id: Date.now() + '-cmd',
-            content: `<div class="input-line"><span class="prompt">visitor@teoclerici:~$</span> <span>${trimmedCmd}</span></div>`,
+            content: `<div class="input-line"><span class="prompt">visitor@teoclerici:~$</span> <span>${escapeHtml(trimmedCmd)}</span></div>`,
             type: 'command',
             isAnimated: false
         });
@@ -189,7 +220,7 @@ export const useTerminal = () => {
         if (!result && cvData[lowerCmd]) {
             outputContent = cvData[lowerCmd];
         } else if (!result) {
-            outputContent = `<div>Command not found: <span class="command-highlight" data-cmd="help">${trimmedCmd}</span>. Type 'help' for available commands.</div><br>`;
+            outputContent = `<div>Command not found: <span class="command-highlight" data-cmd="help">${escapeHtml(trimmedCmd)}</span>. Type 'help' for available commands.</div><br>`;
             shouldAnimate = false;
         }
 
@@ -248,6 +279,10 @@ export const useTerminal = () => {
             }
         }
     };
+
+    useEffect(() => {
+        runCommandRef.current = runCommand;
+    });
 
     return {
         history,
