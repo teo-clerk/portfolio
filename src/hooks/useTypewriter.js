@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Characters appended per tick. Higher = faster.
+// Characters appended per tick, and the typing rate in characters per
+// millisecond. Pacing is time-based rather than frame-based: yielding one
+// animation frame per chunk would tie the speed to the refresh rate and, at
+// 60Hz, type roughly four times slower than the original setTimeout version.
 const CHARS_PER_TICK = 6;
+const CHARS_PER_MS = 1.5;
+// Structural nodes (elements, <br>) cost a little time so markup-heavy output
+// still paces like typing rather than appearing instantly.
+const STRUCTURE_COST = 3;
 
 /**
  * Types HTML content into a container node-by-node.
@@ -54,6 +61,22 @@ export const useTypewriter = (htmlContent, onComplete) => {
             scrollRaf = requestAnimationFrame(resolve);
         });
 
+        // Time-based budget. Each frame credits elapsed-time * CHARS_PER_MS,
+        // and callers spend from it, so throughput is independent of frame
+        // rate and the main thread is yielded to on every frame.
+        let credit = 0;
+        const spend = async (cost) => {
+            while (credit < cost) {
+                const started = performance.now();
+                queueScroll();
+                await nextFrame();
+                if (isCancelled) return false;
+                credit += (performance.now() - started) * CHARS_PER_MS;
+            }
+            credit -= cost;
+            return true;
+        };
+
         // Users who asked for reduced motion get the finished output at once.
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduced) skipRef.current = true;
@@ -77,11 +100,10 @@ export const useTypewriter = (htmlContent, onComplete) => {
                         break;
                     }
 
-                    parent.append(text.substring(i, i + CHARS_PER_TICK));
+                    const chunk = text.substring(i, i + CHARS_PER_TICK);
+                    if (!(await spend(chunk.length))) return;
+                    parent.append(chunk);
                     i += CHARS_PER_TICK;
-
-                    queueScroll();
-                    await nextFrame();
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE) {
                 const el = node.cloneNode(false);
@@ -91,14 +113,12 @@ export const useTypewriter = (htmlContent, onComplete) => {
                 // it character-by-character used to freeze the browser.
                 if (el.classList && el.classList.contains('ascii-art')) {
                     el.innerHTML = node.innerHTML;
-                    queueScroll();
-                    await nextFrame();
+                    await spend(STRUCTURE_COST);
                     return;
                 }
 
                 if (el.tagName === 'BR') {
-                    queueScroll();
-                    await nextFrame();
+                    await spend(STRUCTURE_COST);
                 }
 
                 for (const child of node.childNodes) {
