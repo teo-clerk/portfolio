@@ -11,6 +11,8 @@ export default defineConfig({
     target: 'es2020',
     // Minify with esbuild (default, fastest) — terser is slower with marginal gains
     minify: 'esbuild',
+    // Do not ship source maps: they leak internal structure and add weight.
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -32,6 +34,12 @@ export default defineConfig({
     chunkSizeWarningLimit: 800,
     // Inline small assets (< 8KB) as base64 data URIs to save HTTP requests
     assetsInlineLimit: 8192,
+  },
+  // Strip debug output from production bundles as a backstop, so a stray
+  // console.log can never ship (and never runs in a hot render path).
+  esbuild: {
+    drop: ['debugger'],
+    pure: ['console.log', 'console.debug'],
   },
   // Optimize dependency pre-bundling
   optimizeDeps: {
