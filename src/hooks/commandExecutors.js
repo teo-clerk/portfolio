@@ -1,14 +1,15 @@
 import {
-    cvData, helpText, whoamiText, getRandomFortune, themeText, tarsText,
+    helpText, whoamiText, getRandomFortune, themeText, tarsText,
     accioText, avengersText, expectoText, wingardiumText,
     yodaText, vaderText, r2d2Text, starWarsText, mayTheForceText,
     totoroText, ghibliText, spiritedText, spiderManText, getRandomFunfact,
     pascalText, easterEggsText, grootText, ironmanText, catText, patoText, getRandomAstrofact,
-    guardiansText, starlordText, teofetchText, htopText, snakeText, gargantuaText, emailText,
+    guardiansText, starlordText, teofetchText, htopText, gargantuaText, emailText,
     commandsList
 } from '../data/cvData';
 import { getRandomArt } from '../data/randomArt';
 import { askGrok } from '../services/aiService';
+import { escapeHtml, sanitizeAiHtml } from '../utils/escapeHtml';
 
 export const commandExecutors = {
     'clear': (ctx) => {
@@ -47,7 +48,7 @@ export const commandExecutors = {
         setTimeout(() => ctx.setShowDoom(true), 50);
         return { earlyReturn: true };
     },
-    'recruiter': (ctx) => {
+    'recruiter': () => {
         const specialAction = () => {
             window.open('/CV.pdf', '_blank');
         };
@@ -94,8 +95,8 @@ export const commandExecutors = {
     }),
     'exit': () => ({ outputContent: `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`, shouldAnimate: false }),
     'quit': () => ({ outputContent: `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`, shouldAnimate: false }),
-    'ls': () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\\ndrwxr-xr-x  education/\\ndrwxr-xr-x  experience/\\ndrwxr-xr-x  projects/\\ndrwxr-xr-x  skills/\\ndrwxr-xr-x  contact/\\n-rw-r--r--  CV.pdf\\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
-    'ls -la': () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\\ndrwxr-xr-x  education/\\ndrwxr-xr-x  experience/\\ndrwxr-xr-x  projects/\\ndrwxr-xr-x  skills/\\ndrwxr-xr-x  contact/\\n-rw-r--r--  CV.pdf\\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
+    'ls': () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\ndrwxr-xr-x  education/\ndrwxr-xr-x  experience/\ndrwxr-xr-x  projects/\ndrwxr-xr-x  skills/\ndrwxr-xr-x  contact/\n-rw-r--r--  CV.pdf\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
+    'ls -la': () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\ndrwxr-xr-x  education/\ndrwxr-xr-x  experience/\ndrwxr-xr-x  projects/\ndrwxr-xr-x  skills/\ndrwxr-xr-x  contact/\n-rw-r--r--  CV.pdf\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
     'pwd': () => ({ outputContent: `<div>/home/visitor/teoclerici</div><br>`, shouldAnimate: false }),
     'date': () => ({ outputContent: `<div>${new Date().toUTCString()}</div><br>`, shouldAnimate: false }),
     'tars': () => ({ outputContent: tarsText, shouldAnimate: false }),
@@ -411,9 +412,9 @@ export const dynamicCommandExecutors = [
             };
             if (links[target]) {
                 const specialAction = () => window.open(links[target], '_blank');
-                return { outputContent: `<div>🔗 Opening <strong>${target}</strong>...</div><br>`, shouldAnimate: false, specialAction };
+                return { outputContent: `<div>🔗 Opening <strong>${escapeHtml(target)}</strong>...</div><br>`, shouldAnimate: false, specialAction };
             } else {
-                return { outputContent: `<div>Unknown target: <em>${target}</em>. Try: <span class="command-highlight" data-cmd="open linkedin">linkedin</span>, <span class="command-highlight" data-cmd="open github">github</span>, <span class="command-highlight" data-cmd="open email">email</span></div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>Unknown target: <em>${escapeHtml(target)}</em>. Try: <span class="command-highlight" data-cmd="open linkedin">linkedin</span>, <span class="command-highlight" data-cmd="open github">github</span>, <span class="command-highlight" data-cmd="open email">email</span></div><br>`, shouldAnimate: false };
             }
         }
     },
@@ -422,9 +423,9 @@ export const dynamicCommandExecutors = [
         execute: (cmd, ctx) => {
             const themeName = cmd.replace('theme ', '').trim();
             if (ctx.applyTheme(themeName)) {
-                return { outputContent: `<div>🎨 Theme switched to <strong>${themeName}</strong>.</div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>🎨 Theme switched to <strong>${escapeHtml(themeName)}</strong>.</div><br>`, shouldAnimate: false };
             } else {
-                return { outputContent: `<div>Unknown theme: <em>${themeName}</em>. Available: <span class="command-highlight" data-cmd="theme purple">purple</span>, <span class="command-highlight" data-cmd="theme green">green</span>, <span class="command-highlight" data-cmd="theme amber">amber</span></div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>Unknown theme: <em>${escapeHtml(themeName)}</em>. Available: <span class="command-highlight" data-cmd="theme purple">purple</span>, <span class="command-highlight" data-cmd="theme green">green</span>, <span class="command-highlight" data-cmd="theme amber">amber</span></div><br>`, shouldAnimate: false };
             }
         }
     },
@@ -435,7 +436,7 @@ export const dynamicCommandExecutors = [
     {
         match: cmd => cmd.startsWith('calc ') || cmd === 'calc',
         execute: (cmd) => {
-            const expression = cmd.replace(/^calc\\s*/i, '').trim();
+            const expression = cmd.replace(/^calc\s*/i, '').trim();
             if (!expression) {
                 return { outputContent: `<div>Usage: <span class="command-highlight" data-cmd="calc 5 * 10">calc [math expression]</span></div><br>`, shouldAnimate: false };
             } else {
@@ -444,8 +445,8 @@ export const dynamicCommandExecutors = [
                         throw new Error('Invalid characters');
                     }
                     const result = new Function(`"use strict"; return (${expression})`)();
-                    return { outputContent: `<div><span style="color:#aaa;">${expression} =</span> <strong>${result}</strong></div><br>`, shouldAnimate: false };
-                } catch (e) {
+                    return { outputContent: `<div><span style="color:#aaa;">${escapeHtml(expression)} =</span> <strong>${result}</strong></div><br>`, shouldAnimate: false };
+                } catch {
                     return { outputContent: `<div style="color:#ff5f56;">Error evaluating expression. Usage: <span class="command-highlight" data-cmd="calc 5 * 4">calc [math]</span></div><br>`, shouldAnimate: false };
                 }
             }
@@ -454,7 +455,7 @@ export const dynamicCommandExecutors = [
     {
         match: cmd => cmd.startsWith('ask ') || cmd === 'ask',
         execute: (cmd, ctx) => {
-            const question = cmd.replace(/^ask\\s*/i, '').trim();
+            const question = cmd.replace(/^ask\s*/i, '').trim();
             if (!question) {
                 return { outputContent: `<div>Please provide a question. Usage: <span class="command-highlight" data-cmd="ask who are you?">ask [your question]</span></div><br>`, shouldAnimate: false };
             } else {
@@ -475,7 +476,7 @@ export const dynamicCommandExecutors = [
                 askGrok(question).then(reply => {
                     ctx.setHistory(current => current.map(item => 
                         item.id === thinkingId 
-                            ? { ...item, content: `<div><span style="color:var(--accent-color);">■ Grok:</span> ${reply}</div><br>`, isAnimated: true } 
+                            ? { ...item, content: `<div><span style="color:var(--accent-color);">■ Grok:</span> ${sanitizeAiHtml(reply)}</div><br>`, isAnimated: true } 
                             : item
                     ));
                     ctx.setIsTyping(true);
@@ -488,7 +489,7 @@ export const dynamicCommandExecutors = [
     {
         match: cmd => cmd.startsWith('cowsay ') || cmd === 'cowsay',
         execute: (cmd) => {
-            const msg = cmd.replace(/^cowsay\\s*/i, '').trim() || "Moo";
+            const msg = cmd.replace(/^cowsay\s*/i, '').trim() || "Moo";
             const len = msg.length + 2;
             const top = " _" + "_".repeat(len) + "_ ";
             const bot = " -" + "-".repeat(len) + "- ";
@@ -496,11 +497,11 @@ export const dynamicCommandExecutors = [
             return {
                 outputContent: `<pre class="ascii-art" style="color:#aaa; font-size: 0.8rem;">
 ${top}
-< ${msg} >
+< ${escapeHtml(msg)} >
 ${bot}
         \\   ^__^
          \\  (oo)\\_______
-            (__)\\       )\\/\$
+            (__)\\       )\\/$
                 ||----w |
                 ||     ||</pre><br>`, shouldAnimate: false
             };
@@ -509,14 +510,14 @@ ${bot}
     {
         match: cmd => cmd.startsWith('weather') || cmd === 'weather',
         execute: (cmd, ctx) => {
-            const city = cmd.replace(/^weather\\s*/i, '').trim();
+            const city = cmd.replace(/^weather\s*/i, '').trim();
             if (!city) {
                 return { outputContent: `<div>Usage: <span class="command-highlight" data-cmd="weather venice">weather [city]</span></div><br>`, shouldAnimate: false };
             } else {
                 const weatherId = Date.now() + '-weather';
                 ctx.newHistory.push({
                     id: weatherId,
-                    content: `<div style="color:#888;">Fetching weather for ${city}...</div><br>`,
+                    content: `<div style="color:#888;">Fetching weather for ${escapeHtml(city)}...</div><br>`,
                     type: 'output',
                     isAnimated: false
                 });
@@ -543,14 +544,14 @@ ${bot}
                         if (!text || text.includes('Unknown location')) throw new Error("Not found");
                         ctx.setHistory(current => current.map(item => 
                             item.id === weatherId 
-                                ? { ...item, content: `<div style="color:#ddd;">☁️ ${text}</div><br>`, isAnimated: true } 
+                                ? { ...item, content: `<div style="color:#ddd;">☁️ ${escapeHtml(text)}</div><br>`, isAnimated: true } 
                                 : item
                         ));
                         ctx.setIsTyping(true);
                     }).catch(() => {
                         ctx.setHistory(current => current.map(item => 
                             item.id === weatherId 
-                                ? { ...item, content: `<div style="color:#ff5f56;">Failed to fetch weather for "${city}".</div><br>`, isAnimated: true } 
+                                ? { ...item, content: `<div style="color:#ff5f56;">Failed to fetch weather for "${escapeHtml(city)}".</div><br>`, isAnimated: true } 
                                 : item
                         ));
                         ctx.setIsTyping(true);
@@ -562,7 +563,7 @@ ${bot}
     {
         match: cmd => cmd.startsWith('volume') || cmd === 'volume',
         execute: (cmd, ctx) => {
-            const val = cmd.replace(/^volume\\s*/i, '').trim();
+            const val = cmd.replace(/^volume\s*/i, '').trim();
             if (!val) {
                 return { outputContent: `<div>Current volume: ${Math.round(ctx.globalVolume * 100)}%</div><br>`, shouldAnimate: false };
             } else {
@@ -592,7 +593,7 @@ ${bot}
             } else if (lang === 'ca') {
                 return { outputContent: `<div>Mode català activat! Sóc en Teo Clerici, estudiant d'IA i Ciència de Dades. Escriu <span class="command-highlight" data-cmd="help">help</span> per veure més! ✨</div><br>`, shouldAnimate: false };
             } else {
-                return { outputContent: `<div>Language '${lang}' not fully supported yet. I speak English, Spanish, Italian, and Catalan!</div><br>`, shouldAnimate: false };
+                return { outputContent: `<div>Language '${escapeHtml(lang)}' not fully supported yet. I speak English, Spanish, Italian, and Catalan!</div><br>`, shouldAnimate: false };
             }
         }
     }
