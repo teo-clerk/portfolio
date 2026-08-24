@@ -1,37 +1,37 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import Terminal from './components/Terminal';
+import CssFallback from './components/CssFallback';
+import { getDeviceTier } from './utils/deviceTier';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
-// Heavy / non-critical components — loaded lazily so they never block FCP/LCP
+// Heavy / non-critical components — loaded lazily so they never block FCP/LCP.
+// On the 'none' tier FloatingLines is never imported at all, so the ~123 kB
+// gzipped `three` chunk is never fetched.
 const FloatingLines = lazy(() => import('./components/FloatingLines'));
 const CustomCursor = lazy(() => import('./components/CustomCursor'));
 
-// Detect low-power/mobile conditions
-const isLowPower = () => {
-  if (typeof window === 'undefined') return false;
-  const mobile = window.innerWidth <= 768;
-  // Coarse pointer = touch device (usually less GPU headroom)
-  const touch = window.matchMedia('(pointer: coarse)').matches;
-  // navigator.hardwareConcurrency is a rough CPU signal
-  const weakCPU = navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 4;
-  return mobile || touch || weakCPU;
-};
+// Module-scope constants. These are passed as props into FloatingLines, whose
+// uniform-sync effect depends on them — an inline array literal here would get
+// a fresh identity on every render and re-run that effect continuously.
+const WAVES_FULL = Object.freeze(['top', 'middle', 'bottom']);
+const WAVES_LOW = Object.freeze(['middle']);
 
 function App() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
-  const [lowPower] = useState(() => isLowPower());
+  const [tier] = useState(() => getDeviceTier());
+  const [overlayActive, setOverlayActive] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Tune FloatingLines based on device capability
-  const lineCount = lowPower ? 3 : 7;
-  const lineDistance = lowPower ? 8 : 6;
+  // Stable identity so Terminal's effect doesn't re-run on every render.
+  const handleOverlayChange = useCallback((active) => setOverlayActive(active), []);
+
+  const lowPower = tier === 'low';
 
   return (
     <div className="app-container">
@@ -40,22 +40,29 @@ function App() {
         <CustomCursor />
       </Suspense>
 
-      {/* Floating 3D Lines — lazy loaded (Three.js ~600KB) so it never blocks FCP */}
-      <Suspense fallback={null}>
-        <FloatingLines
-          enabledWaves={lowPower ? ['middle'] : ['top', 'middle', 'bottom']}
-          lineCount={lineCount}
-          lineDistance={lineDistance}
-          bendRadius={lowPower ? 3.0 : 5.0}
-          bendStrength={-0.5}
-          interactive={!isMobile}
-          parallax={!isMobile && !lowPower}
-          mixBlendMode={isMobile ? 'normal' : 'screen'}
-        />
-      </Suspense>
+      {/* Background: real shader on capable devices, CSS gradient otherwise */}
+      {tier === 'none' ? (
+        <CssFallback />
+      ) : (
+        <Suspense fallback={null}>
+          <FloatingLines
+            enabledWaves={lowPower ? WAVES_LOW : WAVES_FULL}
+            lineCount={lowPower ? 3 : 7}
+            lineDistance={lowPower ? 8 : 6}
+            bendRadius={lowPower ? 3.0 : 5.0}
+            bendStrength={-0.5}
+            interactive={!isMobile}
+            parallax={!isMobile && !lowPower}
+            mixBlendMode={isMobile ? 'normal' : 'screen'}
+            // Stop rendering an occluded fullscreen shader while a
+            // full-screen overlay (matrix, doom, pong, snake) is open.
+            paused={overlayActive}
+          />
+        </Suspense>
+      )}
 
       {/* Terminal */}
-      <Terminal />
+      <Terminal onOverlayChange={handleOverlayChange} />
 
       {/* Floating Download CV Button */}
       <a
