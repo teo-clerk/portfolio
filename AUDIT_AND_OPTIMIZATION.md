@@ -1,5 +1,5 @@
 # Technical Audit & Optimization Roadmap
-### Interactive Terminal Portfolio — React 19 / Vite 7 / Three.js r181
+### Interactive Terminal Portfolio — React 19 / Vite 7 / raw WebGL2 (Three.js r181 at audit time, removed in Phase 5)
 
 **Audited:** 2026-08-24 · **Commit:** `c699157` · **Scope:** `src/`, `api/`, `index.html`, `vite.config.js`, `vercel.json`, `public/`
 
@@ -36,7 +36,7 @@
 
 | Chunk | Raw | Gzip |
 |---|---:|---:|
-| `three` | 482.15 kB | 123.08 kB |
+| `three` | 482.15 kB | 123.08 kB | ← **removed in Phase 5 (§3.8)** |
 | `react-vendor` | 188.88 kB | 58.95 kB |
 | `index` | 101.88 kB | 29.69 kB |
 | `FloatingLines` | 9.47 kB | 3.30 kB |
@@ -768,9 +768,28 @@ npx vite-bundle-visualizer
 
 Suggested budgets: **TTI < 2.5 s** on a throttled Moto G4 profile; **frame time < 12 ms** with the terminal idle; **< 16 ms** during typewriter output.
 
-### 3.8 Drop Three.js for raw WebGL2 (optional, 123 kB gzip)
+### 3.8 Drop Three.js for raw WebGL2 (optional, 123 kB gzip) · ✅ Fixed (Phase 5)
 
-Three.js is used for: `Scene`, `OrthographicCamera`, `WebGLRenderer`, `PlaneGeometry(2,2)`, `Mesh`, `ShaderMaterial`, `Vector2/3`, `Clock`. That is a fullscreen-quad blitter. A hand-rolled equivalent is ~80 lines:
+> **Done.** `FloatingLines.jsx` is now a hand-rolled WebGL2 pipeline (WebGL1
+> fallback) with one oversized clip-space triangle, cached uniform locations,
+> `webglcontextlost`/`webglcontextrestored` handling that rebuilds the pipeline,
+> and `WEBGL_lose_context` teardown. `three` is uninstalled and the `three`
+> manual chunk is gone from `vite.config.js`.
+>
+> | Chunk | Before (raw / gzip) | After (raw / gzip) |
+> |---|---:|---:|
+> | `three` | 482,132 B / 123,129 B | **removed** |
+> | `FloatingLines` | 11,998 B / 4,272 B | 14,765 B / 5,196 B |
+> | **Net on `low`/`high` tiers** | | **−479,365 B raw / −122,205 B gzip** |
+>
+> Two things Three.js had been hiding surfaced during the port: the shader
+> used integer `min()` and `lineGradient[idx]` (a non-constant uniform-array
+> index), both **GLSL ES 3.00-only**. Three prepends `#version 300 es` on
+> WebGL2, so the "WebGL1-portable" fix in B12 had never actually been
+> exercised. Both are now written in ES 1.00 form (float `min`, constant-bound
+> select loop), so a single shader string compiles on either context.
+
+Three.js was used for: `Scene`, `OrthographicCamera`, `WebGLRenderer`, `PlaneGeometry(2,2)`, `Mesh`, `ShaderMaterial`, `Vector2/3`, `Clock`. That is a fullscreen-quad blitter. A hand-rolled equivalent is ~80 lines:
 
 ```js
 const gl = canvas.getContext('webgl2', { antialias: false, alpha: true, depth: false, stencil: false });
@@ -896,13 +915,13 @@ One file to add a command. Tab-completion, `commands`, and `help` all update aut
 
 ### Cleanup checklist
 
-- [ ] `npm rm @react-three/fiber @react-three/drei maath` — **zero imports**, 4.3 MB
-- [ ] Add `.vite/` to `.gitignore`; `git rm -r --cached .vite`
-- [ ] Add `.vite`, `dist`, `legacy` to ESLint `globalIgnores`
-- [ ] Decide on `legacy/` — archive to a branch/tag and delete from `main`, or keep it and document why
-- [ ] Delete `src/assets/react.svg` (unused Vite scaffold)
-- [ ] `portfolio.md` is stale — it describes commands as living in `useTerminal.js` and lists Tab-completion, `tour`, and the command-pattern refactor as *future* work; all three shipped. Fold the accurate parts into `CLAUDE.md` and delete it.
-- [ ] Extract the inline `styles` objects in `PongGame`/`SnakeGame` to CSS modules — they currently allocate a new object graph on every render
+- [x] `npm rm @react-three/fiber @react-three/drei maath` — **zero imports**, 4.3 MB
+- [x] Add `.vite/` to `.gitignore`; `git rm -r --cached .vite`
+- [x] Add `.vite`, `dist`, `legacy` to ESLint `globalIgnores`
+- [x] Decide on `legacy/` — kept on `main` and documented in `CLAUDE.md` as reference-only, excluded from the build and from linting
+- [x] Delete `src/assets/react.svg` (unused Vite scaffold)
+- [x] `portfolio.md` is stale — it describes commands as living in `useTerminal.js` and lists Tab-completion, `tour`, and the command-pattern refactor as *future* work; all three shipped. Fold the accurate parts into `CLAUDE.md` and delete it. *(Deleted; nothing needed folding — `CLAUDE.md` already covered every section more accurately.)*
+- [ ] Extract the inline `styles` objects in `PongGame`/`SnakeGame` — they allocate a new object graph on every render. *(`PongGame` done: static sprite/overlay/hint styles hoisted to module scope. **`SnakeGame` is the one that actually matters and is still untouched** — it has no module-level `styles` at all and re-renders every game tick, so it reallocates ~8 static objects plus one per snake segment per tick. `PongGame` only re-renders on a goal, so its fix was clarity, not measurable perf.)*
 
 ---
 
@@ -1031,6 +1050,10 @@ The terminal is a fantastic *filter* for technical audiences and a *barrier* for
 19. Accessibility pass: buttons, live region, focus traps, dialog semantics
 20. Mobile command chips + Cmd+K palette
 21. Streaming `ask`
+
+### Phase 5 — Dependency removal *(~half a day)* — ✅ DONE
+
+22. §3.8 ("Item J"): replace Three.js with a raw WebGL2 blitter — −122 kB gzip on every WebGL tier, `three` uninstalled, context-loss recovery owned in-house
 
 ---
 

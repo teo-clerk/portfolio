@@ -21,18 +21,18 @@ The terminal hides numerous immersive experiences:
 - **Matrix Mode**: Type `matrix` to activate a rain overlay.
 
 ### 🌌 Animated WebGL Background
-A custom GLSL shader rendered via Three.js draws multiple waves of glowing lines that react to your cursor in real time with a radial bend effect and parallax offset. **Performance optimized** with lazy loading and device-aware quality scaling.
+A custom GLSL shader draws multiple waves of glowing lines that react to your cursor in real time with a radial bend effect and parallax offset. It runs on a hand-rolled **raw WebGL2 pipeline** (WebGL1 fallback, one fullscreen triangle, ~5 kB gzipped, zero runtime dependencies) — it used to be Three.js, which cost 123 kB gzipped to draw the same single triangle. **Performance optimized** with lazy loading, adaptive resolution, context-loss recovery and device-aware quality scaling.
 
 ### 📱 Performance & Compatibility
 - **Vercel Integration**: Optimized with **Vercel Analytics** and **Speed Insights**.
-- **Lazy Loading**: Three.js and heavy mini-games are deferred until needed, ensuring a lightning-fast First Contentful Paint.
+- **Lazy Loading**: The WebGL background and heavy mini-games are deferred until needed, ensuring a lightning-fast First Contentful Paint. Total JS on a desktop visit is ~107 kB gzipped (down from ~227 kB before Three.js was removed).
 - **Responsive**: Adapts ASCII art, blend modes, and interaction models for mobile vs. desktop transparency.
 
 ## 🛠️ Tech Stack
 
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
-- **3D / Shader**: [Three.js](https://threejs.org/) — custom WebGL shader via `ShaderMaterial`
+- **Shader**: Raw WebGL2 (GLSL ES 1.00 source, WebGL1 fallback) — no 3D framework, no runtime dependency
 - **Analytics**: Vercel Analytics & Speed Insights
 - **AI**: Grok/Custom API integration
 - **Styling**: Vanilla CSS with CSS Variables

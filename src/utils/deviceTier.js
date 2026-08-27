@@ -2,8 +2,9 @@
  * Device capability tiers for the animated background.
  *
  *   'none' — no WebGL at all. Renders a compositor-only CSS gradient instead,
- *            which also means the ~123 kB gzipped `three` chunk is never
- *            downloaded — precisely on the devices with the least bandwidth.
+ *            which also means the WebGL `FloatingLines` chunk is never
+ *            downloaded and no GL context is created — precisely on the
+ *            devices with the least bandwidth and GPU headroom.
  *   'low'  — WebGL with a single wave, clamped DPR and a 30fps cap.
  *   'high' — full three-wave shader with cursor interaction and parallax.
  */

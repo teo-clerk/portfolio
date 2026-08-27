@@ -25,11 +25,18 @@ There is no test suite or test runner in this repo. `npm run lint` is the only a
 
 `src/utils/deviceTier.js` returns `'none' | 'low' | 'high'` and `App.jsx` branches on it:
 
-- **`none`** (reduced-motion, Save-Data, ≤2 GB RAM, ≤2 cores) renders `CssFallback` — a compositor-only gradient. `FloatingLines` is never imported, so the ~123 kB gzipped `three` chunk is never fetched.
+- **`none`** (reduced-motion, Save-Data, ≤2 GB RAM, ≤2 cores) renders `CssFallback` — a compositor-only gradient. `FloatingLines` is never imported, so no WebGL context is ever created.
 - **`low`** (coarse pointer / small viewport) gets one wave, DPR 1.25, ~30 fps.
 - **`high`** gets three waves, cursor interaction and parallax.
 
-`FloatingLines.jsx` creates its WebGL context in a **create-once effect with empty deps**; prop changes are pushed into live uniforms by a second effect. Never add props to the init effect's dependency array — that is what previously rebuilt (and leaked) the GL context on every render. Any object or array prop passed to it must have a stable identity: module-scope constants, not inline literals or default parameter objects.
+`FloatingLines.jsx` is **raw WebGL2 with no framework** (Three.js was removed — it cost 123 kB gzipped to draw one triangle; the replacement is ~5 kB). Invariants:
+
+- It creates its WebGL context in a **create-once effect with empty deps**; prop changes are pushed into a plain uniform-state object by a second effect and uploaded every frame. Never add props to the init effect's dependency array — that is what previously rebuilt (and leaked) the GL context on every render. Any object or array prop passed to it must have a stable identity: module-scope constants, not inline literals or default parameter objects.
+- Geometry is **one oversized clip-space triangle** (`[-1,-1, 3,-1, -1,3]`), not a quad — no diagonal seam, no matrices, no vertex data beyond that buffer.
+- The shader source is **GLSL ES 1.00** (`attribute`, `gl_FragColor`, no `#version 300 es`) so the same string compiles on the `webgl2` context and on the `webgl` fallback. That rules out ES 3.00-only features: integer `min`/`max`, and indexing a uniform array with anything but a constant or loop counter (see `getLineColor`). Three.js used to hide this by prepending `#version 300 es` on WebGL2, so the old "WebGL1-portable" shader never actually was.
+- `createPipeline(gl)` compiles/links, creates the VBO and **caches every uniform location**; `drawFrame` only ever uses those cached locations. On `webglcontextrestored` every GL object is invalid, so the pipeline **must** be rebuilt with `createPipeline`, never reused.
+- Teardown deletes buffer/shaders/program and then calls `WEBGL_lose_context.loseContext()` — browsers cap ~16 live contexts and a detached canvas keeps its context alive until GC.
+- Time is wall-clock (`performance.now() - t0`), so it keeps advancing while paused/hidden and never jumps on resume.
 
 The render loop is gated on `IntersectionObserver`, `visibilitychange`, and a `paused` prop that `Terminal` drives via `onOverlayChange` when a full-screen overlay opens.
 
@@ -92,15 +99,15 @@ The system prompt lives in `src/services/systemPrompt.js` and is shared by both 
 Core Web Vitals were tuned deliberately; changes here regress real metrics:
 
 - `index.html` holds inline critical CSS, an LQIP background, AVIF/WebP preloads, and deferred Google Fonts (`media="print"` + `onload`).
-- `App.jsx` lazy-loads `FloatingLines` (Three.js, ~600 KB) and `CustomCursor` behind `Suspense`; `isLowPower()` (viewport, coarse pointer, `hardwareConcurrency`) downgrades wave count, bend radius, parallax, and blend mode.
-- `vite.config.js` `manualChunks` isolates `three`, `react-vendor`, and `@vercel` so nothing heavy blocks first paint.
+- `App.jsx` lazy-loads `FloatingLines` (raw WebGL2, ~15 kB raw / ~5 kB gzip) and `CustomCursor` behind `Suspense`; `isLowPower()` (viewport, coarse pointer, `hardwareConcurrency`) downgrades wave count, bend radius, parallax, and blend mode.
+- `vite.config.js` `manualChunks` isolates `react-vendor` and `@vercel` so nothing heavy blocks first paint. There is no `three` chunk any more — do not reintroduce a 3D framework for the background.
 - `OutputLine` in `Terminal.jsx` uses a custom `React.memo` comparator that permanently freezes already-finished lines.
 - `Terminal.jsx` disables the SVG turbulence rAF loop on Safari and pauses it while game/matrix overlays are open.
 - Cache headers live in `vercel.json`.
 
 ### SEO / AEO layer
 
-`index.html` carries JSON-LD `Person` schema, OG/Twitter cards, and a hidden `#ai-manifesto` div aimed at LLM crawlers; `public/robots.txt` explicitly allows GPTBot / ClaudeBot / Google-Extended. When CV facts change in `src/data/cvData.js`, update these to match.
+`index.html` carries JSON-LD `Person` schema and OG/Twitter cards; `public/robots.txt` explicitly allows GPTBot / ClaudeBot / Google-Extended. Machine-readable CV facts live in the JSON-LD only — a hidden `#ai-manifesto` div once carried keyword text aimed at LLM crawlers and was deleted as cloaking (audit §5.3); do not reintroduce hidden crawler-only text. When CV facts change in `src/data/cvData.js`, update the JSON-LD (`alumniOf`, `worksFor`, `knowsAbout`, `knowsLanguage`) and the OG/Twitter/meta descriptions to match — job titles in particular must not drift from the CV.
 
 ## Layout notes
 
@@ -110,4 +117,4 @@ Core Web Vitals were tuned deliberately; changes here regress real metrics:
 - **Never write a ref during render** (`ref.current = value` in the component body). Use an effect, an event handler, or let a loop own the mirror; `react-hooks/refs` enforces this and the codebase is currently clean.
 - `AUDIT_AND_OPTIMIZATION.md` is the standing technical audit. Phases 1–3 are done; §4 (structural refactor) and §6 (features) are the open work.
 - `legacy/` is the pre-React vanilla HTML/CSS/JS version, kept for reference and not part of the build.
-- `portfolio.md` is an older AI-facing context doc and is stale (it describes commands as still living inside `useTerminal.js` and lists Tab-completion, `tour`, and the command-pattern refactor as future work — all three shipped). Prefer this file.
+- `portfolio.md` (an older AI-facing context doc) was deleted in favour of this file — every section it carried was either stale or already covered here. It is in git history if you need it; do not recreate a parallel context doc.

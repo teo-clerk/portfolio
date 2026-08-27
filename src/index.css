@@ -89,7 +89,7 @@
 }
 
 /* ── CSS-only background for the low-capability device tier ──
-   Compositor-only (transform + opacity); no WebGL context, no `three` chunk. */
+   Compositor-only (transform + opacity); no WebGL context, no shader chunk. */
 .bg-fallback {
     position: fixed;
     inset: 0;

@@ -16,8 +16,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Three.js into its own chunk — ~600 KB; never needed before first paint
-          if (id.includes('three')) return 'three';
           // React core in one stable chunk
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react-vendor';
           // Vercel analytics/speed-insights — non-critical, isolated chunk
@@ -30,8 +28,9 @@ export default defineConfig({
         },
       },
     },
-    // Increase chunk-size warning threshold (we know Three.js is large)
-    chunkSizeWarningLimit: 800,
+    // No chunk should get anywhere near this since Three.js was dropped
+    // (the background shader is raw WebGL2, ~5 kB gzip).
+    chunkSizeWarningLimit: 600,
     // Inline small assets (< 8KB) as base64 data URIs to save HTTP requests
     assetsInlineLimit: 8192,
   },

@@ -6,8 +6,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
 // Heavy / non-critical components — loaded lazily so they never block FCP/LCP.
-// On the 'none' tier FloatingLines is never imported at all, so the ~123 kB
-// gzipped `three` chunk is never fetched.
+// On the 'none' tier FloatingLines (raw WebGL2, ~5 kB gzip) is never imported
+// at all, so no WebGL context is ever created.
 const FloatingLines = lazy(() => import('./components/FloatingLines'));
 const CustomCursor = lazy(() => import('./components/CustomCursor'));
 
