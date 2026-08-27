@@ -8,10 +8,59 @@
  * with a unique id, commit it, return `{ earlyReturn: true }`, then patch that
  * entry by id when the promise settles.
  */
-import { askGrok } from '../services/aiService';
+import { askGrokStream } from '../services/aiService';
 import { escapeHtml, sanitizeAiHtml } from '../utils/escapeHtml';
+import { lookupCommandMeta } from './derived';
+import { CATEGORY_LABELS } from './types';
+
+/** One `KEY  value` row of a manual page. */
+const manRow = (label, value) =>
+    `<div style="margin-top:6px;"><span style="color:var(--accent-color);">${label}</span><br>&nbsp;&nbsp;${value}</div>`;
 
 export const dynamicCommands = [
+    {
+        name: 'man',
+        category: 'terminal',
+        usage: 'man [command]',
+        description: 'Show the manual page for a command',
+        match: cmd => cmd.startsWith('man ') || cmd === 'man',
+        runDynamic: (cmd) => {
+            const target = cmd.replace(/^man\s*/i, '').trim().toLowerCase();
+
+            if (!target) {
+                return {
+                    outputContent: `<div>What manual page do you want? Usage: <span class="command-highlight" data-cmd="man help">man [command]</span></div><br>`,
+                    shouldAnimate: false,
+                };
+            }
+
+            const meta = lookupCommandMeta(target);
+            if (!meta) {
+                return {
+                    outputContent: `<div>No manual entry for <em>${escapeHtml(target)}</em>. Try <span class="command-highlight" data-cmd="help">help</span> for the full list.</div><br>`,
+                    shouldAnimate: false,
+                };
+            }
+
+            const rows = [
+                manRow('NAME', `<strong>${escapeHtml(meta.name)}</strong>${meta.description ? ` — ${escapeHtml(meta.description)}` : ''}`),
+                manRow('SYNOPSIS', `<code>${escapeHtml(meta.usage ?? meta.name)}</code>`),
+                manRow('CATEGORY', escapeHtml(CATEGORY_LABELS[meta.category] ?? meta.category ?? 'uncategorised')),
+            ];
+
+            if (meta.aliases?.length) {
+                rows.push(manRow('ALIASES', meta.aliases.map(a => `<code>${escapeHtml(a)}</code>`).join(', ')));
+            }
+            if (!meta.description) {
+                rows.push(manRow('NOTE', 'Undocumented — this one is a hidden command.'));
+            }
+
+            return {
+                outputContent: `<div class="help-container"><div class="section-title">MANUAL: ${escapeHtml(meta.name)}</div>${rows.join('')}</div><br>`,
+                shouldAnimate: false,
+            };
+        }
+    },
     {
         name: 'open',
         category: 'terminal',
@@ -89,26 +138,49 @@ export const dynamicCommands = [
                 const thinkingId = Date.now() + '-thinking';
                 ctx.newHistory.push({
                     id: thinkingId,
-                    content: `<div style="color:#888;">Thinking...</div><br>`,
+                    content: `<div><span style="color:var(--accent-color);">■ Grok:</span> <span style="color:#888;">▌</span></div><br>`,
                     type: 'output',
-                    isAnimated: false
+                    isAnimated: false,
+                    // Opts this row out of OutputLine's "freeze finished lines"
+                    // memo comparator, which would otherwise discard every
+                    // token patch after the first.
+                    isStreaming: true
                 });
-                
+
                 ctx.setHistory([...ctx.newHistory]);
                 ctx.setCommandHistory(prev => [...prev, cmd]);
                 ctx.setHistoryIndex(ctx.commandHistory.length + 1);
                 ctx.setInputVal('');
                 ctx.setIsTyping(true);
-                
-                askGrok(question).then(reply => {
-                    ctx.setHistory(current => current.map(item => 
-                        item.id === thinkingId 
-                            ? { ...item, content: `<div><span style="color:var(--accent-color);">■ Grok:</span> ${sanitizeAiHtml(reply)}</div><br>`, isAnimated: true } 
+
+                // Streaming replaces the typewriter for this one command: the
+                // tokens arriving *are* the animation, so every patch is
+                // `isAnimated: false`. Re-running the typewriter over a growing
+                // string would restart it from the top on every chunk.
+                // `streaming` stays true for every intermediate patch and flips
+                // false on the last one, which re-freezes the finished line.
+                const patch = (html, streaming) => {
+                    ctx.setHistory(current => current.map(item =>
+                        item.id === thinkingId
+                            ? { ...item, content: html, isAnimated: false, isStreaming: streaming }
                             : item
                     ));
-                    ctx.setIsTyping(true);
-                });
-                
+                };
+
+                const render = (text, caret) =>
+                    `<div><span style="color:var(--accent-color);">■ Grok:</span> ${sanitizeAiHtml(text)}${caret ? '<span style="color:#888;">▌</span>' : ''}</div><br>`;
+
+                askGrokStream(question, (soFar) => patch(render(soFar, true), true))
+                    .then(reply => {
+                        // An empty reply means a newer question superseded this
+                        // one; that stream's entry is stale, so leave it alone.
+                        if (reply) patch(render(reply, false), false);
+                    })
+                    .catch(() => {
+                        patch(`<div style="color:#ff5f56;">The AI module dropped the connection.</div><br>`, false);
+                    })
+                    .finally(() => ctx.setIsTyping(false));
+
                 return { earlyReturn: true };
             }
         }

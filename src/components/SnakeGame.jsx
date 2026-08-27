@@ -10,6 +10,12 @@ const INITIAL_DIRECTION = [0, -1]; // moving up
 const SPEED = 120; // ms per tick
 const SWIPE_THRESHOLD = 24; // px before a drag counts as a direction change
 
+// Re-queried on every Tab rather than cached: the restart button only exists
+// while `gameOver` is true, and the D-pad is `display: none` on pointer-fine
+// devices (see index.css), so the focusable set changes during a session.
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 const sameCell = (a, b) => a[0] === b[0] && a[1] === b[1];
 
 /**
@@ -74,6 +80,9 @@ export const SnakeGame = ({ onExit }) => {
   const snakeRef = useRef(INITIAL_SNAKE);
   const foodRef = useRef(food);
 
+  const containerRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
   const changeDirection = useCallback((next) => {
     const [dx, dy] = directionRef.current;
     // Reject reversals into the neck.
@@ -121,6 +130,45 @@ export const SnakeGame = ({ onExit }) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // ── Focus management ────────────────────────────────────────────
+  // The overlay is a modal dialog, so focus must move into it on mount, cycle
+  // only among its own controls, and return to whatever opened it on unmount.
+  // Escape is *not* handled here — `handleKeyDown` above already calls
+  // `onExit()` on Escape, and a second listener would fire it twice.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    closeButtonRef.current?.focus();
+
+    const trapTab = (e) => {
+      // Only Tab is intercepted; the arrow keys the game needs pass straight
+      // through to `handleKeyDown`.
+      if (e.key !== 'Tab') return;
+      const root = containerRef.current;
+      if (!root) return;
+
+      // `offsetParent === null` filters out the hidden D-pad on desktop.
+      const focusable = Array.from(
+        root.querySelectorAll(FOCUSABLE_SELECTOR)
+      ).filter((el) => el.offsetParent !== null);
+
+      e.preventDefault();
+      if (focusable.length === 0) return;
+
+      const index = focusable.indexOf(document.activeElement);
+      const last = focusable.length - 1;
+      const next = e.shiftKey
+        ? (index <= 0 ? last : index - 1)
+        : (index === -1 || index === last ? 0 : index + 1);
+      focusable[next].focus();
+    };
+
+    window.addEventListener('keydown', trapTab);
+    return () => {
+      window.removeEventListener('keydown', trapTab);
+      previouslyFocused?.focus?.();
+    };
+  }, []);
 
   // ── Game loop ───────────────────────────────────────────────────
   // Deps are only true lifecycle values. Including `food`/`score` here meant
@@ -194,16 +242,7 @@ export const SnakeGame = ({ onExit }) => {
       type="button"
       aria-label={label}
       onClick={() => changeDirection(vector)}
-      style={{
-        width: 52, height: 52, fontSize: '1.3rem',
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid var(--accent-color)',
-        borderRadius: 8,
-        color: 'var(--accent-color)',
-        fontFamily: 'inherit',
-        cursor: 'pointer',
-        touchAction: 'manipulation',
-      }}
+      style={styles.dpadButton}
     >
       {glyph}
     </button>
@@ -211,44 +250,28 @@ export const SnakeGame = ({ onExit }) => {
 
   return (
     <div
+      ref={containerRef}
       onClick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
       aria-label="Snake game"
-      style={{
-        position: 'absolute',
-        inset: '0',
-        zIndex: 9999,
-        backgroundColor: 'var(--terminal-bg)',
-        backdropFilter: 'blur(10px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'var(--font-mono)',
-        overflowY: 'auto',
-        padding: '12px',
-      }}
+      style={styles.wrapper}
     >
       <button
         type="button"
+        ref={closeButtonRef}
         onClick={onExit}
         aria-label="Close Snake"
-        style={{
-          position: 'absolute', top: 12, right: 16,
-          cursor: 'pointer', color: 'var(--accent-color)',
-          fontSize: '1.1rem', fontWeight: 'bold',
-          background: 'none', border: 'none', fontFamily: 'inherit',
-        }}
+        style={styles.closeButton}
       >
         [X] CLOSE
       </button>
 
-      <div style={{ marginBottom: 12, color: 'var(--accent-color)', fontSize: '1.4rem', textShadow: '0 0 10px var(--accent-color)' }}>
+      <div style={styles.title}>
         SNAKE.EXE
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: BOARD_PX, marginBottom: 8, color: '#fff', fontSize: '0.9rem' }}>
+      <div style={styles.scoreBar}>
         <div>SCORE: {score}</div>
         <div>HIGH: {highScore}</div>
       </div>
@@ -257,31 +280,21 @@ export const SnakeGame = ({ onExit }) => {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{
-          width: BOARD_PX,
-          height: BOARD_PX,
-          maxWidth: '90vw',
-          maxHeight: '90vw',
-          border: '2px solid var(--accent-color)',
-          boxShadow: '0 0 20px var(--accent-color)',
-          position: 'relative',
-          backgroundColor: '#000',
-          touchAction: 'none',
-        }}
+        style={styles.board}
       >
         {!hasStarted && !gameOver && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', textAlign: 'center', padding: 20, fontSize: '0.9rem' }}>
+          <div style={styles.startOverlay}>
             Arrow keys or swipe<br />to start
           </div>
         )}
 
         {gameOver && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#ff5f56', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: 10 }}>GAME OVER</div>
+          <div style={styles.gameOverOverlay}>
+            <div style={styles.gameOverTitle}>GAME OVER</div>
             <button
               type="button"
               onClick={resetGame}
-              style={{ color: '#fff', background: 'none', border: '1px solid #fff', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontFamily: 'inherit' }}
+              style={styles.restartButton}
             >
               Restart (ENTER)
             </button>
@@ -291,12 +304,8 @@ export const SnakeGame = ({ onExit }) => {
         {/* Food */}
         {food && (
           <div style={{
-            position: 'absolute',
-            width: CELL, height: CELL,
+            ...styles.food,
             transform: `translate3d(${food[0] * CELL}px, ${food[1] * CELL}px, 0)`,
-            backgroundColor: '#ff5f56',
-            borderRadius: '50%',
-            boxShadow: '0 0 10px #ff5f56',
           }} />
         )}
 
@@ -305,19 +314,15 @@ export const SnakeGame = ({ onExit }) => {
           <div
             key={`${segment[0]}-${segment[1]}-${i}`}
             style={{
-              position: 'absolute',
-              width: CELL, height: CELL,
+              ...(i === 0 ? SNAKE_HEAD : SNAKE_BODY),
               transform: `translate3d(${segment[0] * CELL}px, ${segment[1] * CELL}px, 0)`,
-              backgroundColor: i === 0 ? '#fff' : 'var(--accent-color)',
-              border: '1px solid #000',
-              boxShadow: i === 0 ? '0 0 10px #fff' : 'none',
             }}
           />
         ))}
       </div>
 
       {/* On-screen D-pad for touch devices */}
-      <div className="snake-dpad" style={{ marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 6, justifyItems: 'center' }}>
+      <div className="snake-dpad" style={styles.dpadGrid}>
         <span />
         {dpadButton('Move up', [0, -1], '↑')}
         <span />
@@ -329,11 +334,153 @@ export const SnakeGame = ({ onExit }) => {
         <span />
       </div>
 
-      <div style={{ marginTop: 12, color: '#888', fontSize: '0.85rem', textAlign: 'center' }}>
+      <div style={styles.hint}>
         Arrow keys, swipe or D-pad • ESC to exit
       </div>
     </div>
   );
+};
+
+// The component re-renders on every 120ms tick (the snake's position is React
+// state), so anything left as an inline literal below is reallocated several
+// times a second *plus* once per snake segment. Everything static is hoisted so
+// React sees a stable object identity instead.
+
+// Only `transform` varies per cell, so the rest of the sprite — including the
+// head-vs-body colour switch — is precomputed into two frozen variants.
+const segmentBase = {
+  position: 'absolute',
+  width: CELL,
+  height: CELL,
+  border: '1px solid #000',
+};
+
+const SNAKE_HEAD = {
+  ...segmentBase,
+  backgroundColor: '#fff',
+  boxShadow: '0 0 10px #fff',
+};
+
+const SNAKE_BODY = {
+  ...segmentBase,
+  backgroundColor: 'var(--accent-color)',
+  boxShadow: 'none',
+};
+
+const styles = {
+  wrapper: {
+    position: 'absolute',
+    inset: '0',
+    zIndex: 9999,
+    backgroundColor: 'var(--terminal-bg)',
+    backdropFilter: 'blur(10px)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: 'var(--font-mono)',
+    overflowY: 'auto',
+    padding: '12px',
+  },
+  closeButton: {
+    position: 'absolute', top: 12, right: 16,
+    cursor: 'pointer', color: 'var(--accent-color)',
+    fontSize: '1.1rem', fontWeight: 'bold',
+    background: 'none', border: 'none', fontFamily: 'inherit',
+  },
+  title: {
+    marginBottom: 12,
+    color: 'var(--accent-color)',
+    fontSize: '1.4rem',
+    textShadow: '0 0 10px var(--accent-color)',
+  },
+  scoreBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: BOARD_PX,
+    marginBottom: 8,
+    color: '#fff',
+    fontSize: '0.9rem',
+  },
+  board: {
+    width: BOARD_PX,
+    height: BOARD_PX,
+    maxWidth: '90vw',
+    maxHeight: '90vw',
+    border: '2px solid var(--accent-color)',
+    boxShadow: '0 0 20px var(--accent-color)',
+    position: 'relative',
+    backgroundColor: '#000',
+    touchAction: 'none',
+  },
+  startOverlay: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    textAlign: 'center',
+    padding: 20,
+    fontSize: '0.9rem',
+  },
+  gameOverOverlay: {
+    position: 'absolute',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#ff5f56',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    zIndex: 10,
+  },
+  gameOverTitle: {
+    fontSize: '1.8rem',
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  restartButton: {
+    color: '#fff',
+    background: 'none',
+    border: '1px solid #fff',
+    borderRadius: 6,
+    padding: '6px 14px',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  },
+  food: {
+    position: 'absolute',
+    width: CELL,
+    height: CELL,
+    backgroundColor: '#ff5f56',
+    borderRadius: '50%',
+    boxShadow: '0 0 10px #ff5f56',
+  },
+  dpadGrid: {
+    marginTop: 14,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, auto)',
+    gap: 6,
+    justifyItems: 'center',
+  },
+  dpadButton: {
+    width: 52, height: 52, fontSize: '1.3rem',
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid var(--accent-color)',
+    borderRadius: 8,
+    color: 'var(--accent-color)',
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+    touchAction: 'manipulation',
+  },
+  hint: {
+    marginTop: 12,
+    color: '#888',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+  },
 };
 
 export default SnakeGame;

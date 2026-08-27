@@ -741,6 +741,26 @@ a:hover {
     box-shadow: 0 8px 30px rgba(255, 189, 46, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
+/*
+ * `spiderman` lives in the THEMES map in useTerminal.js like the others, but had
+ * no block here — so it recoloured via the inline custom properties and silently
+ * missed the per-theme `.download-cv-btn` treatment every other theme gets.
+ * Red accent over the deep blue panel background.
+ */
+[data-theme="spiderman"] {
+    --accent-color: #ff0000;
+    --terminal-bg: rgba(0, 20, 50, 0.75);
+}
+[data-theme="spiderman"] .download-cv-btn {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.45);
+    box-shadow: 0 4px 20px rgba(255, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+[data-theme="spiderman"] .download-cv-btn:hover {
+    background-color: rgba(255, 0, 0, 0.45);
+    box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
 /* Mobile: icon-only pill to avoid overlap */
 @media (max-width: 768px) {
     .download-cv-btn {

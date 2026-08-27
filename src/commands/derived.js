@@ -33,3 +33,22 @@ export const runNamed = (name, ctx) => {
   }
   return delegate(name, ctx);
 };
+
+/**
+ * Look up a command's own metadata (name, description, category, usage,
+ * aliases) by name.
+ *
+ * `man` renders a manual page straight from the Command objects, so it needs
+ * to read the registry — which imports the command modules, so it cannot be
+ * imported back. Same indirection as `delegate` above: the registry installs
+ * the lookup once at startup.
+ */
+let metaLookup = null;
+export const setMetaLookup = (fn) => { metaLookup = fn; };
+export const lookupCommandMeta = (name) => {
+  if (!metaLookup) {
+    console.error(`Command metadata requested before the registry was ready: "${name}"`);
+    return null;
+  }
+  return metaLookup(name);
+};

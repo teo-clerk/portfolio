@@ -13,6 +13,7 @@ import {
   htopText
 } from '../data/cvData';
 import { getHelpText, getCommandsList } from './derived';
+import { abortActiveAsk } from '../services/aiService';
 import { getRandomArt } from '../data/randomArt';
 
 export const terminalCommands = [
@@ -21,8 +22,13 @@ export const terminalCommands = [
     description: "Clear the terminal",
     category: "terminal",
     run: (ctx) => {
+        // A streaming `ask` writes into a history entry by id. Clearing removes
+        // that entry, so the stream must be cancelled or it keeps patching a
+        // row that no longer exists (and keeps the request billing).
+        abortActiveAsk();
         ctx.setHistory([]);
         ctx.setInputVal('');
+        ctx.setIsTyping(false);
         return { earlyReturn: true };
     },
   },

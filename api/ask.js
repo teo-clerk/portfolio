@@ -10,6 +10,9 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 8;
 const MAX_TRACKED_CLIENTS = 5_000;
 
+/** Ceiling on the whole upstream exchange, streaming included. */
+const UPSTREAM_TIMEOUT_MS = 30_000;
+
 /**
  * Best-effort in-memory rate limiter.
  *
@@ -90,6 +93,15 @@ export default async function handler(req, res) {
         return res.status(503).json({ error: 'AI module is not configured.' });
     }
 
+    // Everything above can still fail with a real status code. Once the first
+    // byte of the stream is written the status is committed, so any later
+    // failure has to be reported as an in-band `error` event instead.
+    const abort = new AbortController();
+    const timeout = setTimeout(() => abort.abort(), UPSTREAM_TIMEOUT_MS);
+
+    // The client hanging up mid-answer should stop us billing for the rest.
+    req.on('close', () => abort.abort());
+
     try {
         const upstream = await fetch('https://api.x.ai/v1/chat/completions', {
             method: 'POST',
@@ -97,6 +109,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${apiKey}`,
             },
+            signal: abort.signal,
             body: JSON.stringify({
                 model: process.env.XAI_MODEL || MODEL,
                 messages: [
@@ -105,26 +118,88 @@ export default async function handler(req, res) {
                 ],
                 temperature: TEMPERATURE,
                 max_tokens: MAX_TOKENS,
+                stream: true,
             }),
         });
 
-        const data = await upstream.json().catch(() => null);
-
-        if (!upstream.ok) {
-            // Log the upstream detail server-side; do not forward it. The old
-            // version returned the provider's raw error body to the browser.
-            console.error('xAI upstream error', upstream.status, data);
+        if (!upstream.ok || !upstream.body) {
+            // Read the body for the server log only — never forward provider text.
+            const detail = await upstream.text().catch(() => '');
+            console.error('xAI upstream error', upstream.status, detail.slice(0, 500));
+            clearTimeout(timeout);
             return res.status(502).json({ error: 'AI provider request failed.' });
         }
 
-        const reply = data?.choices?.[0]?.message?.content;
-        if (typeof reply !== 'string' || reply.length === 0) {
-            return res.status(502).json({ error: 'AI returned an empty response.' });
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            Connection: 'keep-alive',
+            // Vercel/nginx will otherwise buffer the whole body and defeat the
+            // point of streaming.
+            'X-Accel-Buffering': 'no',
+        });
+
+        const reader = upstream.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let produced = 0;
+
+        // Upstream speaks SSE too, but its framing is an implementation detail:
+        // we parse its deltas out and re-emit our own minimal protocol so the
+        // client never has to know which provider is behind this.
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            // Last element is a partial line; keep it for the next chunk.
+            buffer = lines.pop() ?? '';
+
+            for (const line of lines) {
+                const text = line.trim();
+                if (!text.startsWith('data:')) continue;
+
+                const payload = text.slice(5).trim();
+                if (payload === '[DONE]') continue;
+
+                try {
+                    const parsed = JSON.parse(payload);
+                    const delta = parsed?.choices?.[0]?.delta?.content;
+                    if (typeof delta === 'string' && delta.length > 0) {
+                        produced += delta.length;
+                        res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+                    }
+                } catch {
+                    /* a frame split across chunks — the buffer will retry it */
+                }
+            }
         }
 
-        return res.status(200).json({ reply });
+        if (produced === 0) {
+            res.write(`data: ${JSON.stringify({ error: 'AI returned an empty response.' })}\n\n`);
+        }
+        res.write('data: [DONE]\n\n');
+        res.end();
     } catch (error) {
-        console.error('Serverless error:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        const aborted = error?.name === 'AbortError';
+        console.error('Serverless error:', aborted ? 'aborted/timed out' : error);
+
+        if (res.headersSent) {
+            // Mid-stream: the status line is long gone, so report in band.
+            try {
+                res.write(`data: ${JSON.stringify({ error: 'The AI response was cut short.' })}\n\n`);
+                res.write('data: [DONE]\n\n');
+                res.end();
+            } catch {
+                /* socket already gone */
+            }
+            return;
+        }
+        return res.status(aborted ? 504 : 500).json({
+            error: aborted ? 'AI request timed out.' : 'Internal Server Error',
+        });
+    } finally {
+        clearTimeout(timeout);
     }
 }

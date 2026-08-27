@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 const PADDLE_WIDTH = 80;
 const PADDLE_HEIGHT = 10;
@@ -29,7 +30,12 @@ export const PongGame = ({ onExit }) => {
 
     const requestRef = useRef(0);
     const areaRef = useRef(null);
+    const wrapperRef = useRef(null);
     const rectRef = useRef({ width: LOGICAL_WIDTH, height: LOGICAL_HEIGHT });
+
+    // Escape is already handled by the arrow-key listener below, so the trap is
+    // mounted without its own `onEscape` to avoid exiting twice.
+    useFocusTrap(wrapperRef);
 
     const playerRef = useRef(null);
     const aiRef = useRef(null);
@@ -183,7 +189,14 @@ export const PongGame = ({ onExit }) => {
     };
 
     return (
-        <div style={styles.wrapper} role="dialog" aria-modal="true" aria-label="Pong game">
+        <div
+            ref={wrapperRef}
+            style={styles.wrapper}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Pong game"
+            tabIndex={-1}
+        >
             <div style={styles.header}>
                 <span>AI: {score.ai}</span>
                 <span>PONG</span>
@@ -196,57 +209,95 @@ export const PongGame = ({ onExit }) => {
                 style={styles.gameArea}
                 onTouchMove={handleTouchMove}
             >
-                <div ref={aiRef} style={{
-                    ...styles.paddle,
-                    top: 0,
-                    left: 0,
-                    width: `${(PADDLE_WIDTH / LOGICAL_WIDTH) * 100}%`,
-                    height: `${(PADDLE_HEIGHT / LOGICAL_HEIGHT) * 100}%`
-                }} />
+                <div ref={aiRef} style={styles.aiPaddle} />
 
-                <div ref={ballRef} style={{
-                    ...styles.ball,
-                    top: 0,
-                    left: 0,
-                    width: `${(BALL_SIZE / LOGICAL_WIDTH) * 100}%`,
-                    height: `${(BALL_SIZE / LOGICAL_HEIGHT) * 100}%`
-                }} />
+                <div ref={ballRef} style={styles.ballEl} />
 
-                <div ref={playerRef} style={{
-                    ...styles.paddle,
-                    top: `${((LOGICAL_HEIGHT - PADDLE_HEIGHT) / LOGICAL_HEIGHT) * 100}%`,
-                    left: 0,
-                    width: `${(PADDLE_WIDTH / LOGICAL_WIDTH) * 100}%`,
-                    height: `${(PADDLE_HEIGHT / LOGICAL_HEIGHT) * 100}%`
-                }} />
+                <div ref={playerRef} style={styles.playerPaddle} />
 
                 {score.isGameOver && (
                     <div style={styles.overlay}>
-                        <h2 style={{ color: '#27c93f', textShadow: '0 0 5px #27c93f' }}>
+                        <h2 style={styles.overlayTitle}>
                             {score.player >= WIN_SCORE ? 'YOU WIN!' : 'GAME OVER'}
                         </h2>
                         <button
                             type="button"
                             onClick={onExit}
-                            style={{
-                                marginTop: '1rem', cursor: 'pointer', background: 'none',
-                                border: '1px solid #27c93f', borderRadius: 6, padding: '6px 14px',
-                                color: '#27c93f', fontFamily: 'inherit',
-                            }}
+                            style={styles.exitButton}
                         >
                             [ Exit (Q) ]
                         </button>
                     </div>
                 )}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem', textAlign: 'center' }}>
+            <div style={styles.hint}>
                 Desktop: [Left/Right Arrows] | Mobile: [Drag Area] | Exit: [Q]
             </div>
         </div>
     );
 };
 
+// Every sprite dimension is a fixed ratio of the logical playfield, so the
+// percentages below are constants. They used to be recomputed and spread into
+// a fresh style object on every render; hoisting them means React sees the same
+// object identity each time and the arithmetic runs once at module load.
+const PADDLE_W_PCT = `${(PADDLE_WIDTH / LOGICAL_WIDTH) * 100}%`;
+const PADDLE_H_PCT = `${(PADDLE_HEIGHT / LOGICAL_HEIGHT) * 100}%`;
+const BALL_W_PCT = `${(BALL_SIZE / LOGICAL_WIDTH) * 100}%`;
+const BALL_H_PCT = `${(BALL_SIZE / LOGICAL_HEIGHT) * 100}%`;
+const PLAYER_TOP_PCT = `${((LOGICAL_HEIGHT - PADDLE_HEIGHT) / LOGICAL_HEIGHT) * 100}%`;
+
+// Shared by both paddles and the ball. Positions are painted via `transform` in
+// `paint()`; `top`/`left` only anchor the element's origin.
+const sprite = {
+    position: 'absolute',
+    backgroundColor: '#27c93f',
+    boxShadow: '0 0 5px #27c93f',
+    willChange: 'transform',
+};
+
 const styles = {
+    aiPaddle: {
+        ...sprite,
+        top: 0,
+        left: 0,
+        width: PADDLE_W_PCT,
+        height: PADDLE_H_PCT,
+    },
+    playerPaddle: {
+        ...sprite,
+        top: PLAYER_TOP_PCT,
+        left: 0,
+        width: PADDLE_W_PCT,
+        height: PADDLE_H_PCT,
+    },
+    ballEl: {
+        ...sprite,
+        top: 0,
+        left: 0,
+        width: BALL_W_PCT,
+        height: BALL_H_PCT,
+    },
+    overlayTitle: {
+        color: '#27c93f',
+        textShadow: '0 0 5px #27c93f',
+    },
+    exitButton: {
+        marginTop: '1rem',
+        cursor: 'pointer',
+        background: 'none',
+        border: '1px solid #27c93f',
+        borderRadius: 6,
+        padding: '6px 14px',
+        color: '#27c93f',
+        fontFamily: 'inherit',
+    },
+    hint: {
+        fontSize: '0.8rem',
+        color: '#888',
+        marginTop: '0.5rem',
+        textAlign: 'center',
+    },
     wrapper: {
         width: '100%',
         display: 'flex',
@@ -276,18 +327,6 @@ const styles = {
         overflow: 'hidden',
         touchAction: 'none',
         boxShadow: '0 0 10px rgba(0, 255, 0, 0.2) inset'
-    },
-    paddle: {
-        position: 'absolute',
-        backgroundColor: '#27c93f',
-        boxShadow: '0 0 5px #27c93f',
-        willChange: 'transform',
-    },
-    ball: {
-        position: 'absolute',
-        backgroundColor: '#27c93f',
-        boxShadow: '0 0 5px #27c93f',
-        willChange: 'transform',
     },
     overlay: {
         position: 'absolute',

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useTiltEffect } from '../hooks/useTiltEffect';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import { readStorage, writeStorage } from '../utils/storage';
 import { PongGame } from './PongGame';
 import SnakeGame from './SnakeGame';
 import BootSequence from './BootSequence';
@@ -10,6 +12,8 @@ import CommandPalette from './CommandPalette';
 import CommandChips from './CommandChips';
 
 // Component to render a single line of output
+// `isStreaming` is consumed only by the comparator below, which receives the
+// whole props object, so it is intentionally not destructured here.
 const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => {
   const { containerRef, skip } = useTypewriter(content, onAnimationComplete);
 
@@ -25,12 +29,96 @@ const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => 
     />
   );
 }, (prevProps, nextProps) => {
+  // A streaming line is rewritten in place on every token, and is deliberately
+  // NOT animated (the arriving tokens are the animation). Without this check it
+  // would hit the freeze below on its very first patch and never update again.
+  if (prevProps.isStreaming || nextProps.isStreaming) {
+    return prevProps.content === nextProps.content
+      && prevProps.isStreaming === nextProps.isStreaming;
+  }
   // If the line is static (not animated anymore), never re-render it.
   // This saves massive CPU overhead when typing new commands.
   if (!prevProps.isAnimated && !nextProps.isAnimated) return true;
   return prevProps.content === nextProps.content && prevProps.isAnimated === nextProps.isAnimated;
 });
 OutputLine.displayName = 'OutputLine';
+
+/** Idle time before the first-visit hint appears, and the key that retires it. */
+const IDLE_HINT_MS = 8000;
+const HINT_SEEN_KEY = 'hintSeen';
+
+const doomStyles = {
+  wrapper: {
+    position: 'absolute',
+    inset: 0,
+    zIndex: 9999,
+    backgroundColor: '#000',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRadius: '12px',
+  },
+  bar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '15px 25px',
+    backgroundColor: '#B22222',
+    borderBottom: '2px solid #fff',
+    border: 'none',
+    width: '100%',
+    cursor: 'pointer',
+    alignItems: 'center',
+    font: 'inherit',
+  },
+  barLabel: { color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' },
+  barClose: {
+    background: '#fff', color: '#B22222', fontFamily: 'var(--font-mono)',
+    fontSize: '1.2rem', fontWeight: 'bold', padding: '8px 16px', borderRadius: '6px',
+  },
+  frame: { width: '100%', height: '100%', border: 'none' },
+};
+
+/**
+ * Extracted from the Terminal body so it can own a ref for the focus trap.
+ *
+ * Unlike Pong and Snake this overlay has no keyboard controls of its own, so it
+ * had no way to close from the keyboard at all — the trap supplies Escape.
+ */
+const DoomOverlay = ({ onExit }) => {
+  const containerRef = useRef(null);
+  useFocusTrap(containerRef, { onEscape: onExit });
+
+  return (
+    <div
+      ref={containerRef}
+      onClick={(e) => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      aria-label="DOOM"
+      tabIndex={-1}
+      style={doomStyles.wrapper}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onExit();
+        }}
+        style={doomStyles.bar}
+      >
+        <span style={doomStyles.barLabel}>
+          DOOM.EXE (Click this bar, or press Esc, to close)
+        </span>
+        <span style={doomStyles.barClose}>X CLOSE</span>
+      </button>
+      <iframe
+        src="https://silentspacemarine.com/"
+        style={doomStyles.frame}
+        title="DOOM"
+      />
+    </div>
+  );
+};
 
 const Terminal = ({ onOverlayChange }) => {
   const {
@@ -58,6 +146,7 @@ const Terminal = ({ onOverlayChange }) => {
   const turbulenceRef = useRef(null);
   const wrapperRef = useRef(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [idleHint, setIdleHint] = useState(false);
 
   const overlayActive = showGame || showMatrix || showDoom || showSnake;
 
@@ -121,6 +210,26 @@ const Terminal = ({ onOverlayChange }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // A blank CLI is the site's biggest bounce risk for non-technical visitors.
+  // After a spell of no typing, nudge the placeholder toward the conversion
+  // command. Fires once per browser: anyone who has typed here before already
+  // knows how it works, and a returning visitor being nagged is worse than the
+  // hint being missed.
+  useEffect(() => {
+    if (readStorage('localStorage', HINT_SEEN_KEY) === 'true') return;
+    if (inputVal || isTyping || showBoot || overlayActive) return;
+
+    const timer = setTimeout(() => setIdleHint(true), IDLE_HINT_MS);
+    return () => clearTimeout(timer);
+  }, [inputVal, isTyping, showBoot, overlayActive]);
+
+  // Any keystroke means they found their way in — retire the hint for good.
+  useEffect(() => {
+    if (!inputVal) return;
+    setIdleHint(false);
+    writeStorage('localStorage', HINT_SEEN_KEY, 'true');
+  }, [inputVal]);
+
   const closePalette = useCallback(() => {
     setPaletteOpen(false);
     setTimeout(() => inputRef.current?.focus(), 10);
@@ -143,12 +252,24 @@ const Terminal = ({ onOverlayChange }) => {
       if (cmd) el.setAttribute('aria-label', `Run command: ${cmd}`);
     };
 
+    // ASCII art is decorative: read character by character it is pure noise.
+    // There are ~25 `.ascii-art` blocks emitted as raw HTML strings across
+    // cvData and the command modules, so they are hidden here by observation
+    // rather than by annotating every call site (same reasoning as the chips).
+    const hideArt = (el) => {
+      if (!el.classList?.contains('ascii-art')) return;
+      if (el.hasAttribute('aria-hidden')) return;
+      el.setAttribute('aria-hidden', 'true');
+    };
+
     // The added node may itself be a chip (the typewriter appends each element
     // before filling it), so match the node as well as its descendants.
     const upgrade = (root) => {
       if (root.nodeType !== Node.ELEMENT_NODE) return;
       markup(root);
+      hideArt(root);
       root.querySelectorAll?.('.command-highlight:not([data-a11y])').forEach(markup);
+      root.querySelectorAll?.('.ascii-art:not([aria-hidden])').forEach(hideArt);
     };
 
     upgrade(body);
@@ -274,6 +395,7 @@ const Terminal = ({ onOverlayChange }) => {
                 key={item.id}
                 content={item.content}
                 isAnimated={item.isAnimated}
+                isStreaming={item.isStreaming}
                 onAnimationComplete={() => {
                   if (index === history.length - 1) {
                     setIsTyping(false);
@@ -285,61 +407,7 @@ const Terminal = ({ onOverlayChange }) => {
 
             {showGame && <PongGame onExit={handleGameExit} />}
 
-            {showDoom && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
-                aria-label="DOOM"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  zIndex: 9999,
-                  backgroundColor: '#000',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                  borderRadius: '12px'
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDoomExit();
-                  }}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '15px 25px',
-                    backgroundColor: '#B22222',
-                    borderBottom: '2px solid #fff',
-                    border: 'none',
-                    width: '100%',
-                    cursor: 'pointer',
-                    alignItems: 'center',
-                    font: 'inherit'
-                  }}
-                >
-                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                    DOOM.EXE (Click this bar to close)
-                  </span>
-                  <span
-                    style={{
-                      background: '#fff', color: '#B22222', fontFamily: 'var(--font-mono)',
-                      fontSize: '1.2rem', fontWeight: 'bold', padding: '8px 16px', borderRadius: '6px'
-                    }}
-                  >
-                    X CLOSE
-                  </span>
-                </button>
-                <iframe
-                  src="https://silentspacemarine.com/"
-                  style={{ width: '100%', height: '100%', border: 'none' }}
-                  title="DOOM"
-                />
-              </div>
-            )}
+            {showDoom && <DoomOverlay onExit={handleDoomExit} />}
 
             {showSnake && <SnakeGame onExit={handleSnakeExit} />}
 
@@ -355,7 +423,11 @@ const Terminal = ({ onOverlayChange }) => {
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isTyping || showGame}
-                placeholder={!inputVal && !isTyping ? "type 'help' — or press \u2318K" : ""}
+                placeholder={
+                  !inputVal && !isTyping
+                    ? (idleHint ? 'try: recruiter' : "type 'help' — or press \u2318K")
+                    : ''
+                }
                 aria-label="Terminal command input"
                 autoComplete="off"
                 spellCheck="false"

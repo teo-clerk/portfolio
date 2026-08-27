@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { asciiArt, asciiArtMobile, asciiArtFull } from '../data/cvData';
 import { resolveCommand, commandsList } from '../commands/registry';
 import { escapeHtml } from '../utils/escapeHtml';
-import { readStorage } from '../utils/storage';
+import { readStorage, writeStorage } from '../utils/storage';
 
 const THEMES = {
     purple: { accent: '#8A2BE2', bg: 'rgba(20, 20, 20, 0.5)' },
@@ -11,12 +11,55 @@ const THEMES = {
     spiderman: { accent: '#ff0000', bg: 'rgba(0, 20, 50, 0.75)' },
 };
 
-const applyTheme = (name) => {
-    const theme = THEMES[name];
-    if (!theme) return false;
+const THEME_STORAGE_KEY = 'theme';
+
+/** Longest `?cmd=` value we will dispatch. Guards against a junk-stuffed URL. */
+const MAX_DEEP_LINK_LENGTH = 64;
+
+const paintTheme = (name, theme) => {
     document.documentElement.setAttribute('data-theme', name);
     document.documentElement.style.setProperty('--accent-color', theme.accent);
     document.documentElement.style.setProperty('--terminal-bg', theme.bg);
+};
+
+/**
+ * Apply a theme, persist it, and cross-fade the swap where supported.
+ *
+ * `startViewTransition` is progressive enhancement: unsupported browsers (and
+ * anyone who asked for reduced motion) take the plain synchronous path. The
+ * boolean return is what `theme <name>` uses to decide between the success and
+ * "unknown theme" output, so it must stay synchronous — `startViewTransition`
+ * returns immediately and commits the DOM write in a callback, which is fine.
+ *
+ * Persistence deliberately stores only the theme NAME. THEMES here and the
+ * `[data-theme]` blocks in index.css already have to agree; resolving colours
+ * from a third copy (say, an inline hydration script) would be a third place to
+ * drift. Hydration therefore happens on mount, below, not before first paint.
+ */
+const applyTheme = (name) => {
+    const theme = THEMES[name];
+    if (!theme) return false;
+
+    const commit = () => paintTheme(name, theme);
+    writeStorage('localStorage', THEME_STORAGE_KEY, name);
+
+    let reduced = false;
+    try {
+        reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch {
+        /* matchMedia unavailable — treat as "motion is fine" */
+    }
+
+    if (!reduced && typeof document.startViewTransition === 'function') {
+        try {
+            document.startViewTransition(commit);
+            return true;
+        } catch {
+            /* transition refused (already running, document hidden) — fall through */
+        }
+    }
+
+    commit();
     return true;
 };
 
@@ -88,6 +131,29 @@ export const useTerminal = () => {
     useEffect(() => {
         if (readStorage('sessionStorage', 'booted') === 'true') {
             setShowBoot(false);
+        }
+
+        // Rehydrate the last chosen theme. Runs after first paint, so an
+        // unsupported/blocked storage read simply leaves the CSS default in
+        // place rather than throwing.
+        const storedTheme = readStorage('localStorage', THEME_STORAGE_KEY);
+        if (storedTheme && THEMES[storedTheme]) {
+            paintTheme(storedTheme, THEMES[storedTheme]);
+        }
+
+        // Deep link: `?cmd=recruiter` runs a command on arrival. BootSequence
+        // already skips its animation when `cmd` is present, so the terminal is
+        // interactive by the time this lands. Dispatch goes through the tour
+        // queue rather than runCommand directly — that effect already waits for
+        // the welcome typewriter to finish instead of racing it.
+        try {
+            const deepLink = new URLSearchParams(window.location.search).get('cmd');
+            const trimmed = deepLink?.trim();
+            if (trimmed && trimmed.length <= MAX_DEEP_LINK_LENGTH) {
+                setTourQueue([trimmed]);
+            }
+        } catch {
+            /* URL unavailable — no deep link to honour */
         }
 
         const art = getAsciiArt();

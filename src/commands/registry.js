@@ -10,7 +10,7 @@
  * shadowing, which is how the previous hand-maintained list drifted.
  */
 import { CATEGORY_LABELS, CATEGORY_ORDER } from './types';
-import { setDerived, setDelegate } from './derived';
+import { setDerived, setDelegate, setMetaLookup } from './derived';
 import { contentCommands } from './content.commands';
 import { cvCommands } from './cv.commands';
 import { actionCommands } from './actions.commands';
@@ -112,4 +112,26 @@ setDelegate((name, ctx) => {
     return null;
   }
   return command.run(ctx);
+});
+
+/**
+ * Metadata lookup for `man`.
+ *
+ * Exact registry hit first (which also resolves aliases to their command),
+ * then a dynamic command matched by its own `name`. `match()` is deliberately
+ * NOT used as a fallback: `sudo` matches any string starting with "sudo", so
+ * probing patterns here would return confidently wrong manual pages.
+ * `aliases` is recomputed from the registry so an alias page can list its
+ * siblings.
+ */
+setMetaLookup((name) => {
+  const command = registry.get(name) ?? dynamicRegistry.find((c) => c.name === name);
+  if (!command) return null;
+
+  const aliases = [...registry.entries()]
+    .filter(([key, value]) => value === command && key !== command.name)
+    .map(([key]) => key)
+    .sort();
+
+  return { ...command, aliases };
 });
