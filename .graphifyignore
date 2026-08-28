@@ -1,0 +1,16 @@
+# graphify: exclude non-product content from extraction (token efficiency).
+# Code is AST-extracted for free; every .md/.png here would be sent to an LLM.
+# Agent/tool configs (ECC skill docs, hooks, plans) — 111 of FairShare's 118 .md files lived here
+.agents/
+.claude/
+.codex/
+.cursor/
+.opencode/
+.pi/
+# graphify's own outputs
+graphify-out/
+# static assets: images trigger per-file vision extraction
+public/
+# lockfiles and generated bundles
+*.lock
+*.min.*
