@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "generate:cv": "node scripts/generate-cv.mjs",
+    "check:api": "node scripts/check-api.mjs",
     "predev": "npm run generate:cv",
     "dev": "vite",
-    "prebuild": "npm run generate:cv",
+    "prebuild": "npm run generate:cv && npm run check:api",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

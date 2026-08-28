@@ -1,4 +1,10 @@
-import { cvData } from '../data/cvData';
+// NOTE: the `.js` extension is REQUIRED and must not be dropped. This module is
+// imported by `api/ask.js`, a Vercel serverless function that runs under native
+// Node ESM (`"type": "module"`), where extensionless relative specifiers throw
+// ERR_MODULE_NOT_FOUND at load time. Vite's bundler resolution hides this in the
+// browser build, so the omission previously shipped as a hard 500 on /api/ask
+// that no local `vite dev` run could reproduce. `npm run check:api` guards it.
+import { cvData } from '../data/cvData.js';
 
 export const MAX_QUESTION_LENGTH = 500;
 export const MODEL = 'grok-3-mini';
