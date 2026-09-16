@@ -103,7 +103,7 @@ Core Web Vitals were tuned deliberately; changes here regress real metrics:
 - `vite.config.js` `manualChunks` isolates `react-vendor` and `@vercel` so nothing heavy blocks first paint. There is no `three` chunk any more — do not reintroduce a 3D framework for the background.
 - `OutputLine` in `Terminal.jsx` uses a custom `React.memo` comparator that permanently freezes already-finished lines.
 - `Terminal.jsx` disables the SVG turbulence rAF loop on Safari and pauses it while game/matrix overlays are open.
-- Cache headers live in `vercel.json`.
+- Cache headers and rewrites live in `vercel.json`. Static hashed assets are immutable-cached (1 yr), while `index.html`, `cv.html`, and `CV.pdf` (`public, max-age=0, must-revalidate`) ensure immediate freshness on redeploy without stale browser caching. `/CV.pdf` (and rewritten `/cv.pdf`) also sends `Content-Disposition: attachment; filename="Teo_Clerici_CV.pdf"` so direct visits trigger an automatic download.
 
 ### SEO / AEO layer
 
