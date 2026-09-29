@@ -1,37 +1,39 @@
 export const cvData = {
     'about': `
 <span class="section-title">PROFESSIONAL SUMMARY</span>
-AI &amp; Data Science student at <strong>H-Farm Campus</strong> (University of Chichester, UK) with over 3 years of mentoring experience in international hackathons and educational programs.
-Passionate about building <strong>human-centered solutions</strong> through <strong>technology</strong>, <strong>data analytics</strong>, and <strong>education</strong>.
-Founder and coordinator of student initiatives, combining technical execution with strong curiosity in <strong>business</strong> and <strong>scientific domains</strong>.
-Trilingual communicator with a proven ability to bridge engineering concepts and diverse teams.
+Second-year <strong>AI &amp; Data Science</strong> undergraduate at <strong>H-FARM College</strong> (University of Chichester, UK) with a <strong>builder's mindset</strong>: I learn by building and shipping, from <strong>local-first ML tools</strong> to working <strong>hardware</strong>.
+Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club founder, now steering toward <strong>aerospace and deep tech</strong>: orbital mechanics at the H-FARM observatory today, Earth-observation AI next.
 `,
     'education': `
 <span class="section-title">EDUCATION</span>
-<span class="list-item"><strong>Bachelor of Science in AI &amp; Data Science</strong> (Sep 2025 – Expected May 2028)
-   University of Chichester – H-Farm Campus (Venice, Italy)
-   <br>&nbsp;&nbsp;• BSc in AI and Data Science — 180 ECTS, curriculum developed alongside <strong>Microsoft</strong>.
-   <br>&nbsp;&nbsp;• Key highlights: Machine Learning, Python, Cloud Computing, Data Analysis, Power BI.
-   <br>&nbsp;&nbsp;• Active member of multicultural student community and campus startup ecosystem.</span>
+<span class="list-item"><strong>BSc AI &amp; Data Science</strong> (Sep 2025 – Expected May 2028)
+   H-FARM College, Venice, Italy — degree awarded by the University of Chichester (UK)
+   <br>&nbsp;&nbsp;• 180 ECTS, curriculum co-developed with <strong>Microsoft</strong>.
+   <br>&nbsp;&nbsp;• Key topics: Machine Learning, Python, Cloud Computing, Data Analysis, Entrepreneurship.
+   <br>&nbsp;&nbsp;• Founder of the H-Altura Club and Student Ambassador on campus.</span>
 
 <span class="list-item"><strong>Technology Baccalaureate, Engineering &amp; Technology</strong> (Sep 2023 – Jun 2025)
    CIC Escola Batxillerats (Barcelona, Spain) | Grade: 8.29/10
    <br>&nbsp;&nbsp;• Technology and engineering specialization with strong STEM foundation.
-   <br>&nbsp;&nbsp;• Active participant in MIT&amp;CIC Hackathons and engineering education programs.</span>
+   <br>&nbsp;&nbsp;• MIT &amp; CIC Hackathon participant (2024), then mentor (2025).</span>
 `,
     'experience': `
 <span class="section-title">PROFESSIONAL EXPERIENCE</span>
-<span class="list-item"><strong>Brand Ambassador &amp; Content Creator</strong> @ Audi We Generation (May 2026 – Present)
-   <br>&nbsp;&nbsp;• Selected as one of five primary participants for the Audi We Generation program.
-   <br>&nbsp;&nbsp;• Representing the brand through digital media on innovation, technology, sustainability, and mobility.</span>
+<span class="list-item"><strong>Q&amp;A Moderator, Futurist Session with Toshi Anders Hoo</strong> @ H-FARM Campus, Venice (Sep 2026)
+   <br>&nbsp;&nbsp;• Moderated a 30-minute live Q&amp;A, turning emerging-technology and foresight themes into sharp, accessible questions.</span>
+
+<span class="list-item"><strong>Brand Ambassador &amp; Content Creator</strong> @ Audi We Generation — Audi Italia (May 2026 – Present)
+   <br>&nbsp;&nbsp;• Selected as <strong>1 of 5</strong> representatives from <strong>1,300+ applicants</strong> for the 9th edition of this Audi × H-FARM programme.
+   <br>&nbsp;&nbsp;• Produce digital content and lead public discussions on innovation, technology and the future of mobility.</span>
+
+<span class="list-item"><strong>Student Ambassador</strong> @ H-FARM College — Venice, Italy (Nov 2025 – Present)</span>
 
 <span class="list-item"><strong>Junior Consultant</strong> @ Lumina Consulting Agency — Venice, Italy (Oct 2025 – Present)
-   <br>&nbsp;&nbsp;• Student-led consulting in Business, Media &amp; Communication, and AI &amp; Digital Technologies.
-   <br>&nbsp;&nbsp;• Integrating research and innovation to craft forward-thinking, generational-bridge solutions.</span>
+   <br>&nbsp;&nbsp;• Research-driven advisory for a student-led consultancy: business strategy, media &amp; communication, AI &amp; digital.</span>
 
 <span class="list-item"><strong>Educational Mentor</strong> @ MIT Edgerton Center &amp; Fundació CIC (Jan 2025 – Present)
-   <br>&nbsp;&nbsp;• Part of the <strong>MIT BCN Squad</strong> organizing Engineering Workshops worldwide.
-   <br>&nbsp;&nbsp;• Key Events: International Hackathon Mexico (Oct 2025), BCN Tech Projects × UPC (Aug 2025), MIT&amp;CIC&amp;UPC Hackathon (Jan 2025).</span>
+   <br>&nbsp;&nbsp;• Part of the <strong>MIT BCN Squad</strong>, running engineering design workshops worldwide.
+   <br>&nbsp;&nbsp;• Mentored student teams from ideation to prototype across <strong>4 programmes in 2025</strong>: MIT × CIC × UPC Hackathon (Jan), CIC Batxillerats TechProjects, BCN Tech Projects × UPC (Aug), International Hackathon Mexico (Oct, remote).</span>
 
 <span class="list-item"><strong>Private Tutor – Programming &amp; Mathematics</strong> @ Self-Employed, Barcelona (Sep 2022 – Jun 2024)
    <br>&nbsp;&nbsp;• One-on-one support in Python, C++ and Mathematics for secondary school students.</span>
@@ -41,40 +43,68 @@ Trilingual communicator with a proven ability to bridge engineering concepts and
 `,
     'projects': `
 <span class="section-title">PROJECTS &amp; INITIATIVES</span>
-<span class="list-item"><strong>Synapse: Multi-Modal AI Pipeline</strong> — Independent AI Project, Venice
-   <br>&nbsp;&nbsp;• Architected a local AI pipeline using Python, OCR, and Whisper transcription models.
-   <br>&nbsp;&nbsp;• Processes social media videos into structured, actionable knowledge data.</span>
+<span class="list-item"><strong>SciNet</strong> — local-first 3D semantic map of a scientific library (2026 – Present) — <a href="https://github.com/teo-clerk/SciNet" target="_blank">github.com/teo-clerk/SciNet</a>
+   <br>&nbsp;&nbsp;• Parses PDFs (Marker/Surya OCR) into 1024-D embeddings and a UMAP/HDBSCAN 3D map with LLM-named regions.
+   <br>&nbsp;&nbsp;• <strong>506-paper</strong> library on one <strong>8 GB GPU</strong>, zero cloud egress by default.
+   <br>&nbsp;&nbsp;• Unit-aware quantity extraction (18 SI-normalised kinds), a cited local librarian agent and an MCP server (10 tools).
+   <br>&nbsp;&nbsp;• Released <strong>v0.1.0</strong> under the MIT licence. Stack: Python, FastAPI, Ollama, SQLite, Vite.</span>
 
-<span class="list-item"><strong>DIY Xenon Plasma Toroid</strong> — Independent Hardware Engineering
-   <br>&nbsp;&nbsp;• Engineered a functional xenon plasma toroid from scratch.
-   <br>&nbsp;&nbsp;• Managed high-voltage electronics and applied plasma physics principles.</span>
+<span class="list-item"><strong>ISS Pass Prediction &amp; Satellite Tracking</strong> — H-FARM observatory (Sep 2026) — <a href="https://github.com/teo-clerk/hfarm-satellite-tracking" target="_blank">github.com/teo-clerk/hfarm-satellite-tracking</a>
+   <br>&nbsp;&nbsp;• SGP4-propagated TLEs give per-second alt/az passes and visibility; times match SkyTrack 2.0 to the second.
+   <br>&nbsp;&nbsp;• ASCOM mount readout measures open-loop pointing error against the ~0.04° EdgeHD budget; closed loop next.
+   <br>&nbsp;&nbsp;• Stack: Python, skyfield/SGP4, ASCOM.</span>
+
+<span class="list-item"><strong>LaCasitaOS</strong> — co-living OS for student households (2026 – Present) — <a href="https://lacasitaos.app/" target="_blank">lacasitaos.app</a>
+   <br>&nbsp;&nbsp;• Receipt OCR, item-level weighted splits through a swipe UI and min-cash-flow debt simplification across <strong>7 modules</strong>.
+   <br>&nbsp;&nbsp;• Stripe subscription billing, push notifications and an Android build in Google Play closed testing.
+   <br>&nbsp;&nbsp;• Stack: Next.js 16, React 19, TypeScript, Prisma, Supabase, Stripe.</span>
+
+<span class="list-item"><strong>DIY Xenon Plasma Toroid</strong> — Independent High-Voltage Hardware Build
+   <br>&nbsp;&nbsp;• Designed and built a working xenon plasma toroid: high-voltage drive electronics and gas-discharge apparatus.</span>
+
+<span class="list-item"><strong>PiLearn</strong> — piano-learning assistant (2026 – Present, in development)
+   <br>&nbsp;&nbsp;• Upload sheet music, get a step-by-step practice plan: PDF → optical music recognition → MusicXML/MIDI.
+   <br>&nbsp;&nbsp;• Java / Spring Boot API, Angular frontend and a Python worker, run with Docker Compose.</span>
+
+<span class="list-item"><strong>ArTeo</strong> — personal portfolio and art gallery (2026 – Present) — <a href="https://arteo.teoclerici.com" target="_blank">arteo.teoclerici.com</a>
+   <br>&nbsp;&nbsp;• Vision-model descriptions, trilingual stories and generated music per artwork, a 3D viewer and account-free checkout.
+   <br>&nbsp;&nbsp;• Stack: Next.js, Prisma/Supabase, Stripe.</span>
 
 <span class="list-item"><strong>Interactive Terminal Portfolio</strong> — <a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a>
    <br>&nbsp;&nbsp;• The very site you're exploring right now.
-   <br>&nbsp;&nbsp;• Built with <strong>React 19</strong>, custom <strong>GLSL WebGL shaders</strong> (Three.js), glassmorphism UI.
-   <br>&nbsp;&nbsp;• Features: typewriter animations, 3D tilt, parallax, hidden easter eggs, theme switching.</span>
+   <br>&nbsp;&nbsp;• Built with <strong>React 19</strong> and hand-written <strong>WebGL2 GLSL shaders</strong> (no 3D framework), glassmorphism UI.
+   <br>&nbsp;&nbsp;• Features: streaming AI assistant, typewriter animations, mini-games, hidden easter eggs, theme switching.</span>
 
-<span class="list-item"><strong>H-Altura Club</strong> (Founder) @ University of Chichester – H-Farm Campus
-   <br>&nbsp;&nbsp;• Founded and coordinated a student outdoor activities club.
-   <br>&nbsp;&nbsp;• Engaged 100+ participants in events promoting wellbeing, collaboration, and leadership.</span>
+<span class="list-item"><strong>H-Altura Club</strong> (Founder &amp; Coordinator) @ H-FARM Campus (2025 – Present) — <a href="https://www.instagram.com/haltura.club/" target="_blank">@haltura.club</a>
+   <br>&nbsp;&nbsp;• Founded and run the campus outdoor-activities club.
+   <br>&nbsp;&nbsp;• <strong>100+ participants</strong> across community-building events.</span>
 `,
     'skills': `
 <span class="section-title">SKILLS</span>
 <span class="list-item"><strong>Technical:</strong>
-   <br>&nbsp;&nbsp;• Programming: Python, C++, Arduino, Java, Go (basic)
-   <br>&nbsp;&nbsp;• Data Science &amp; AI: Machine Learning, OpenCV, Whisper, Data Analysis, Power BI
-   <br>&nbsp;&nbsp;• Tools: Git/GitHub, Linux (Arch/Hyprland), Neovim, LaTeX, 3D Printing, Fusion 360
+   <br>&nbsp;&nbsp;• Programming: Python (PyTorch, FastAPI), C/C++ (Arduino), TypeScript/React/Next.js, Java, SQL, Bash
+   <br>&nbsp;&nbsp;• AI &amp; Data: local LLMs (Ollama), embeddings, UMAP/HDBSCAN, OCR, OpenCV, MCP tooling, Power BI
+   <br>&nbsp;&nbsp;• Aerospace &amp; Hardware: TLE/SGP4 propagation, ASCOM telescope control, HV electronics, plasma physics
+   <br>&nbsp;&nbsp;• Tools: Linux (Arch/Hyprland), Git/GitHub, Docker, PostgreSQL/Supabase, LaTeX, Fusion 360, 3D printing
    <br>&nbsp;&nbsp;• Creative Technical: Photography, Astrophotography, Video Editing, Drone Piloting</span>
 
 <span class="list-item"><strong>Communication, Leadership &amp; Organization:</strong>
    <br>&nbsp;&nbsp;• Multilingual: Spanish, Italian, Catalan (Native) · English (B2) · French (A2)
-   <br>&nbsp;&nbsp;• Public Speaking, Team Collaboration, Event Coordination, Project Management</span>
+   <br>&nbsp;&nbsp;• Public Speaking, Mentoring, Team Collaboration, Event Coordination, Project Management</span>
 `,
     'certifications': `
 <span class="section-title">CERTIFICATIONS</span>
 <span class="list-item"><strong>Business Intelligence and Data Analytics with Enterprise Tools (Power BI)</strong> — Microsoft (2025)</span>
 <span class="list-item"><strong>Bojos per la Ciència: Inteligencia Artificial</strong> — Fundació Catalunya La Pedrera (Nov 2024)</span>
+<span class="list-item"><strong>MIT &amp; CIC &amp; UPC Hackathon Participation</strong> — MIT Edgerton Center (Jan 2024)</span>
 <span class="list-item"><strong>English Language Certification (Level B2)</strong> — Cambridge (Jul 2023)</span>
+<span class="list-item"><strong>C++ Programming – Competitive Programming</strong> — Olimpiada Informática Española (Jun 2022)</span>
+`,
+    'awards': `
+<span class="section-title">AWARDS &amp; COMPETITIONS</span>
+<span class="list-item"><strong>1st place (team)</strong> — EssilorLuxottica × Forbes Next Leaders Business Game (Sep 2026)
+   <br>&nbsp;&nbsp;• Managerial and financial decision-making case: 53 points vs 47 for the runner-up.</span>
+<span class="list-item"><strong>Selected 1 of 5 from 1,300+ applicants</strong> — Audi We Generation, 9th edition (May 2026)</span>
 `,
     'languages': `
 <span class="section-title">LANGUAGES</span>
@@ -103,10 +133,10 @@ AI &amp; Machine Learning, Astrophysics, High-Altitude Hiking, Astrophotography,
 export const whoamiText = `
 <div class="whoami-card">
   <div class="whoami-row"><span class="whoami-label">name</span><span class="whoami-value">Teo Clerici Jurado</span></div>
-  <div class="whoami-row"><span class="whoami-label">role</span><span class="whoami-value">AI &amp; Data Science Student · Junior Consultant · Mentor</span></div>
-  <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy (H-Farm Campus)</span></div>
+  <div class="whoami-row"><span class="whoami-label">role</span><span class="whoami-value">AI &amp; Data Science Student · Builder · Mentor</span></div>
+  <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy (H-FARM College)</span></div>
   <div class="whoami-row"><span class="whoami-label">languages</span><span class="whoami-value">ES · IT · CA · EN · FR</span></div>
-  <div class="whoami-row"><span class="whoami-label">stack</span><span class="whoami-value">Python · C++ · Machine Learning · Power BI · OpenCV · Whisper</span></div>
+  <div class="whoami-row"><span class="whoami-label">stack</span><span class="whoami-value">Python · FastAPI · Local LLMs · TypeScript/Next.js · SGP4 · Power BI</span></div>
   <div class="whoami-row"><span class="whoami-label">email</span><span class="whoami-value"><a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span></div>
   <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span></div>
   <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span></div>

@@ -28,7 +28,8 @@ const SECTIONS = [
   ['experience', 'Experience'],
   ['projects', 'Projects'],
   ['skills', 'Skills'],
-  ['certifications', 'Certifications & Awards'],
+  ['certifications', 'Certifications'],
+  ['awards', 'Awards'],
   ['languages', 'Languages'],
   ['interests', 'Interests'],
 ];
@@ -65,7 +66,7 @@ const page = `<!doctype html>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Teo Clerici Jurado — CV</title>
-    <meta name="description" content="Curriculum vitae of Teo Clerici Jurado — AI &amp; Data Science student at H-FARM Campus, Junior Consultant at Lumina Consulting, Educational Mentor with the MIT Edgerton Center." />
+    <meta name="description" content="Curriculum vitae of Teo Clerici Jurado — second-year AI &amp; Data Science student at H-FARM College (University of Chichester), builder of SciNet and LaCasitaOS, Educational Mentor with the MIT Edgerton Center, heading toward aerospace and Earth-observation AI." />
     <link rel="canonical" href="${SITE}/cv" />
     <link rel="icon" type="image/png" sizes="32x32" href="/duck-32.png" />
     <meta name="theme-color" content="#0a0a0a" />

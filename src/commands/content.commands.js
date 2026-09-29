@@ -22,7 +22,8 @@ export const contentCommands = [
   fromCvData('experience', 'Work history'),
   fromCvData('projects', 'Initiatives &amp; Projects'),
   fromCvData('skills', 'Technical &amp; Soft skills'),
-  fromCvData('certifications', 'Certificates &amp; Awards'),
+  fromCvData('certifications', 'Certificates'),
+  fromCvData('awards', 'Awards &amp; competitions'),
   fromCvData('languages', 'Spoken languages'),
   fromCvData('interests', 'Personal interests'),
 ];
