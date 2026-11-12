@@ -9,8 +9,9 @@
  */
 import { cvData } from '../data/cvData';
 
-const fromCvData = (name, description) => ({
+const fromCvData = (name, description, aliases = []) => ({
   name,
+  aliases,
   description,
   category: 'cv',
   run: () => ({ outputContent: cvData[name] }),
@@ -18,10 +19,12 @@ const fromCvData = (name, description) => ({
 
 export const contentCommands = [
   fromCvData('about', 'Professional summary'),
+  fromCvData('floodfusion', 'Featured project: flood maps from radar', ['flood']),
   fromCvData('education', 'Academic background'),
   fromCvData('experience', 'Work history'),
   fromCvData('projects', 'Initiatives &amp; Projects'),
   fromCvData('skills', 'Technical &amp; Soft skills'),
+  fromCvData('publications', 'Preprints &amp; papers'),
   fromCvData('certifications', 'Certificates'),
   fromCvData('awards', 'Awards &amp; competitions'),
   fromCvData('languages', 'Spoken languages'),

@@ -87,7 +87,7 @@ export const terminalCommands = [
     name: "ls",
     description: "List directory contents",
     category: "terminal",
-    run: () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\ndrwxr-xr-x  education/\ndrwxr-xr-x  experience/\ndrwxr-xr-x  projects/\ndrwxr-xr-x  skills/\ndrwxr-xr-x  contact/\n-rw-r--r--  CV.pdf\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
+    run: () => ({ outputContent: `<div class="ascii-art" style="font-size:0.85rem;">drwxr-xr-x  about/\ndrwxr-xr-x  floodfusion/\ndrwxr-xr-x  education/\ndrwxr-xr-x  experience/\ndrwxr-xr-x  projects/\ndrwxr-xr-x  skills/\ndrwxr-xr-x  contact/\n-rw-r--r--  CV.pdf\n-rwxr-xr-x  game*</div><br>`, shouldAnimate: false }),
   },
   {
     name: "randomart",
@@ -152,7 +152,7 @@ export const terminalCommands = [
     run: () => ({
         outputContent: `
 <div style="width: 100%; height: 300px; border-radius: 8px; overflow: hidden; margin-top: 10px; box-shadow: 0 0 15px var(--accent-color);">
-  <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=12.40%2C45.56%2C12.43%2C45.59&amp;layer=mapnik&amp;marker=45.5786%2C12.4172" style="background:#000; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);"></iframe>
+  <iframe title="Map of H-FARM Campus, Roncade, Italy" loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=12.40%2C45.56%2C12.43%2C45.59&amp;layer=mapnik&amp;marker=45.5786%2C12.4172" style="background:#000; filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);"></iframe>
 </div>
 <br><div style="color:#aaa;">Location: H-Farm Campus (Roncade, Italy) 🌍</div><br>`, shouldAnimate: false
     }),
@@ -162,7 +162,7 @@ export const terminalCommands = [
     description: "Take an automated tour",
     category: "terminal",
     run: (ctx) => {
-        ctx.setTourQueue(['whoami', 'experience', 'skills', 'projects', 'randomart']);
+        ctx.setTourQueue(['whoami', 'floodfusion', 'experience', 'skills', 'projects', 'randomart']);
         return { 
             outputContent: `<div style="color:var(--accent-color);">Starting automated tour... 🎢 Keep your hands inside the vehicle!</div><br>`, 
             shouldAnimate: true

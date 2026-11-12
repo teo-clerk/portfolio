@@ -9,13 +9,22 @@ Interactive terminal-style portfolio for Teo Clerici. React 19 + Vite SPA, deplo
 ## Commands
 
 ```bash
-npm run dev        # Vite dev server
-npm run build      # production bundle (manual chunking, see vite.config.js)
-npm run preview    # serve the built bundle
-npm run lint       # ESLint flat config (eslint.config.js)
+npm run dev          # Vite dev server
+npm run build        # production bundle; `prebuild` runs every gate below first
+npm run preview      # serve the built bundle (does NOT apply vercel.json headers)
+npm run lint         # ESLint flat config (eslint.config.js)
+npm test             # Vitest unit tests (tests/*.test.js, Node environment, no DOM)
+npm run check:vercel # compile every vercel.json route pattern the way Vercel does
+npm run check:api    # load api/*.js under native Node ESM
 ```
 
-There is no test suite or test runner in this repo. `npm run lint` is the only automated check — it is clean (0 errors, 0 warnings), so **keep it that way**; a noisy gate previously hid four genuinely broken commands behind 400+ errors from a committed `.vite` cache.
+`npm run build` runs `check:vercel`, `npm test`, `generate:cv` and `check:api` before Vite. Each gate exists because the failure it catches once shipped silently:
+
+- **`check:vercel`** — Vercel compiles every `source` in `vercel.json` with path-to-regexp v6 before building, and a pattern it rejects fails the whole deployment while the previous build keeps serving. `"/(?:CV|cv)\\.pdf"` (a top-level group may not start with `?`) froze production from 2026-09-16 to 2026-11 without anyone noticing. Vite never reads `vercel.json`, so nothing else can see this.
+- **`npm test`** — pure-logic tests: the AI sanitiser, the `calc` parser, the deep-link allow-list, registry integrity (every referenced `.mp3` exists, sounds play once), the CSP shape, and that CV claims which were never built stay out of the published content.
+- **Lint** is clean (0 errors, 0 warnings) — **keep it that way**; a noisy gate previously hid four genuinely broken commands behind 400+ errors from a committed `.vite` cache.
+
+**A failed Vercel deploy is silent.** After any push, check `gh api repos/teo-clerk/portfolio/commits/<sha>/status`.
 
 **Important:** `api/ask.js` is a Vercel serverless function and does **not** run under `vite dev`. To exercise the real production AI path locally, use `vercel dev` instead; otherwise `aiService.js` falls back to a direct browser call (see AI Integration below).
 
@@ -42,12 +51,15 @@ The render loop is gated on `IntersectionObserver`, `visibilitychange`, and a `p
 
 ### Command pipeline
 
-The whole app funnels through `runCommand()` in `src/hooks/useTerminal.js`. Resolution order for an entered string (lowercased):
+The whole app funnels through `runCommand()` in `src/hooks/useTerminal.js`, which calls `resolveCommand(lowercasedInput)` from `src/commands/registry.js`:
 
-1. `commandExecutors[cmd]` — exact-match map in `src/hooks/commandExecutors.js`
-2. `dynamicCommandExecutors` — ordered array of `{ match(cmd), execute(cmd, ctx) }` for prefix commands (`open `, `theme `, `calc `, `ask `, `cowsay `, `weather`, `volume`, `lang `, `sudo`)
-3. `cvData[cmd]` — plain content commands (`about`, `education`, `experience`, `projects`, `skills`, …) resolve straight out of the data object with no executor
-4. otherwise → "Command not found"
+1. `registry` — a `Map` of exact names (and aliases) built from the category modules: `content.commands.js` (CV sections, bodies come from `cvData`), `cv.commands.js`, `actions.commands.js`, `terminal.commands.js`, `eastereggs.commands.js`
+2. `dynamicRegistry` — the ordered array in `dynamic.commands.js` of `{ match(cmd), runDynamic(cmd, ctx) }` for commands with arguments (`man`, `open`, `theme <name>`, `sudo`, `calc`, `ask`, `cowsay`, `weather`, `volume`, `lang`)
+3. otherwise → "Command not found"
+
+`match()` receives the lowercased input, but `runDynamic()` receives it **as typed** (so `ask` and `cowsay` keep their capitals). A command whose argument is a keyword must strip its prefix case-insensitively and lowercase the rest (`keywordArg()`): phone keyboards capitalise the first letter, and `Open linkedin` used to fail. Matchers use `isCommand()` so `sudo` does not also swallow `sudoku`.
+
+Never look user input up in an object literal (`links[target]`, `THEMES[name]`): `({})['constructor']` is truthy. Use a `Map`, as `OPEN_TARGETS` and `src/utils/themes.js` do.
 
 Executors return a result object; every field is optional:
 
@@ -81,15 +93,25 @@ All terminal output is raw HTML rendered via `dangerouslySetInnerHTML` (static l
 
 ### Registering a new command
 
-Adding an executor is not enough. Also append the command name (and every alias) to `commandsList` in `src/data/cvData.js` — it drives both Tab-completion in `handleKeyDown` and the `commands` debug listing. Add it to `helpText` too if it is meant to be discoverable.
+Add one object to the right category module in `src/commands/` (contract in `types.js`). `commandsList` (Tab-completion, the `commands` listing) and the `help` screen are derived from the modules in `registry.js`, so there is no second list to update. A command appears in `help` when it has a `description`; registering the same name twice throws in development. CV sections are one line: `fromCvData('name', 'description', ['alias'])` plus the `cvData` key — and add the key to `SECTIONS` in `scripts/generate-cv.mjs` if it belongs on the static `/cv` page.
+
+### Deep links
+
+`?cmd=<command>` runs a command on arrival, through `resolveDeepLink()` in `src/commands/deepLink.js`. A link is written by a third party, so the command is untrusted: only exact registry commands with `category: 'cv'`, plus `help`, `tour` and `recruiter`, are allowed. Pattern commands are never allowed — `?cmd=ask …` used to fire a billed AI request with attacker-chosen text. Do not widen the list to anything with a side effect.
+
+### Terminal input and the typing state
+
+`isTyping` is true while output is being typed or an async command is pending. The input is deliberately **not** `disabled` during that time (that dropped focus on every command and closed the on-screen keyboard on phones); instead `handleKeyDown` / `handleInputChange` in `useTerminal.js` swallow input, and a printable key, Enter or Escape skips the typewriter.
+
+A line reports completion through `handleLineComplete(id)` in `Terminal.jsx`, which has a stable identity and reads history through a ref. Keep it that way: `OutputLine`'s memo comparator freezes finished lines, so a line holds the callback from the render that created it, and a closure over `history` goes stale (the welcome line used to clear the typing state under whatever command ran before it finished).
 
 ### Themes
 
-Two places must agree: the `THEMES` map in `useTerminal.js` (sets `--accent-color` / `--terminal-bg` inline on `documentElement` plus a `data-theme` attribute) and the `[data-theme="…"]` blocks in `src/index.css` (used only for extra per-theme selectors such as `.download-cv-btn`). The inline properties are what actually recolor the terminal, so a theme works without a CSS block, but loses those extras.
+Two places must agree: the `THEMES` map in `src/utils/themes.js` (applied by `applyTheme` in `useTerminal.js`, which sets `--accent-color` / `--terminal-bg` inline on `documentElement` plus a `data-theme` attribute) and the `[data-theme="…"]` blocks in `src/index.css` (used only for extra per-theme selectors such as `.download-cv-btn`). The inline properties are what actually recolor the terminal, so a theme works without a CSS block, but loses those extras.
 
 ### AI integration (`ask`)
 
-The system prompt lives in `src/services/systemPrompt.js` and is shared by both paths so they cannot drift. `src/services/aiService.js` branches on `import.meta.env.DEV`:
+The system prompt lives in `src/services/systemPrompt.js` and is shared by both paths so they cannot drift. It embeds the CV as plain text (`htmlToText()` over `cvData`), so it follows content changes automatically; `api/ask.js` imports it under native Node ESM, so every relative import in that chain needs an explicit `.js` extension. `src/services/aiService.js` branches on `import.meta.env.DEV`:
 
 - **prod** → `POST /api/ask` with `{ question }` **only**. The endpoint builds the system prompt server-side and ignores any model/temperature/messages from the client — accepting those made it usable as a free xAI proxy. It rate-limits per IP (8/min, in-memory, best-effort across instances) and never forwards upstream error bodies.
 - **dev** → direct call to x.ai using `VITE_XAI_API_KEY` from `.env.local`. Behind `import.meta.env.DEV`, so Vite dead-code-eliminates the whole branch — verified absent from `dist/`. Use `vercel dev` to exercise the real proxy.
@@ -98,12 +120,18 @@ The system prompt lives in `src/services/systemPrompt.js` and is shared by both 
 
 Core Web Vitals were tuned deliberately; changes here regress real metrics:
 
-- `index.html` holds inline critical CSS, an LQIP background, AVIF/WebP preloads, and deferred Google Fonts (`media="print"` + `onload`).
+- `index.html` holds inline critical CSS, an LQIP background, AVIF/WebP preloads, and deferred Google Fonts (`media="print"`, switched to `all` from `src/main.jsx` once loaded — not an inline `onload`, which the CSP forbids).
 - `App.jsx` lazy-loads `FloatingLines` (raw WebGL2, ~15 kB raw / ~5 kB gzip) and `CustomCursor` behind `Suspense`; `isLowPower()` (viewport, coarse pointer, `hardwareConcurrency`) downgrades wave count, bend radius, parallax, and blend mode.
 - `vite.config.js` `manualChunks` isolates `react-vendor` and `@vercel` so nothing heavy blocks first paint. There is no `three` chunk any more — do not reintroduce a 3D framework for the background.
 - `OutputLine` in `Terminal.jsx` uses a custom `React.memo` comparator that permanently freezes already-finished lines.
 - `Terminal.jsx` disables the SVG turbulence rAF loop on Safari and pauses it while game/matrix overlays are open.
 - Cache headers and rewrites live in `vercel.json`. Static hashed assets are immutable-cached (1 yr), while `index.html`, `cv.html`, and `CV.pdf` (`public, max-age=0, must-revalidate`) ensure immediate freshness on redeploy without stale browser caching. `/CV.pdf` (and rewritten `/cv.pdf`) also sends `Content-Disposition: attachment; filename="Teo_Clerici_CV.pdf"` so direct visits trigger an automatic download.
+
+### Security headers
+
+`vercel.json` sends a Content-Security-Policy on every route: `script-src 'self'` with no `'unsafe-inline'` and no `'unsafe-eval'`. That is why there are no inline event handlers in `index.html` or the generated `/cv` page, and why `calc` uses the parser in `src/utils/calc.js` rather than `eval`/`new Function` — do not reintroduce either. `style-src` allows `'unsafe-inline'` because terminal output is HTML strings full of `style=""` attributes. Adding a third-party origin (a fetch, an iframe, a font) means adding it to the matching directive, and `tests/deployConfig.test.js` pins the current list. `vite preview` does not send these headers; test the policy on a Vercel preview deployment.
+
+Third-party iframes (`doom`, `map`) are sandboxed, and every `target="_blank"` link carries `rel="noopener noreferrer"` (enforced by a test).
 
 ### SEO / AEO layer
 
@@ -111,9 +139,9 @@ Core Web Vitals were tuned deliberately; changes here regress real metrics:
 
 ## Layout notes
 
-- `src/data/cvData.js` (~930 lines) is the content store: CV sections, help text, ASCII art variants (`asciiArtFull` / `asciiArt` / `asciiArtMobile`, chosen by viewport width), easter-egg payloads, and `commandsList`.
-- `src/hooks/commandExecutors.js` (~600 lines) is the command registry. Both files are past the usual size guidance by design — keep additions grouped with their neighbours rather than starting a parallel structure.
-- `src/utils/` holds the cross-cutting helpers: `escapeHtml` (+ `sanitizeAiHtml`), `sfx` (one shared `AudioContext` — never construct your own), `storage` (never-throwing storage access), `deviceTier`.
+- `src/data/cvData.js` (~740 lines) is the content store: CV sections, ASCII art variants (`asciiArtFull` / `asciiArt` / `asciiArtMobile`, chosen by viewport width) and easter-egg payloads; `src/data/randomArt.js` holds the `randomart` pool. CV facts come from the owner's knowledge base and dated CVs, not from this repo: work that was planned but not built must not be listed (a test guards the known cases).
+- `src/commands/` is the command registry (see Command pipeline). `cvData.js` and `eastereggs.commands.js` are past the usual size guidance by design — keep additions grouped with their neighbours rather than starting a parallel structure.
+- `src/utils/` holds the cross-cutting helpers: `escapeHtml` (+ `sanitizeAiHtml`), `htmlToText` (prompt formatting only, not a sanitiser), `calc`, `themes`, `sfx` (one shared `AudioContext` — never construct your own), `storage` (never-throwing storage access), `deviceTier`.
 - **Never write a ref during render** (`ref.current = value` in the component body). Use an effect, an event handler, or let a loop own the mirror; `react-hooks/refs` enforces this and the codebase is currently clean.
 - `AUDIT_AND_OPTIMIZATION.md` is the standing technical audit. Phases 1–3 are done; §4 (structural refactor) and §6 (features) are the open work.
 - `legacy/` is the pre-React vanilla HTML/CSS/JS version, kept for reference and not part of the build.

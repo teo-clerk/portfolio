@@ -37,6 +37,13 @@ export default defineConfig([
     },
   },
   {
+    // Tests run under Node (Vitest) and read files from disk.
+    files: ['tests/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+  {
     // Content files are large template literals of ASCII art. Backslash-heavy
     // art trips no-useless-escape constantly and the escapes are harmless.
     files: ['src/data/**/*.js'],

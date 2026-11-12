@@ -10,6 +10,7 @@
  */
 const CHIPS = [
   { cmd: 'recruiter', label: '⚡ recruiter' },
+  { cmd: 'floodfusion', label: '🛰️ floodfusion' },
   { cmd: 'about', label: 'about' },
   { cmd: 'experience', label: 'experience' },
   { cmd: 'projects', label: 'projects' },

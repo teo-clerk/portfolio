@@ -142,6 +142,8 @@ const CommandPalette = ({ onClose, onRun }) => {
           aria-controls="palette-results"
           aria-activedescendant={results[activeIndex] ? `palette-opt-${results[activeIndex].name}` : undefined}
           autoComplete="off"
+          autoCapitalize="off"
+          autoCorrect="off"
           spellCheck="false"
         />
 

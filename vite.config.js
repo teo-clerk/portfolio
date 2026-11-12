@@ -40,6 +40,11 @@ export default defineConfig({
     drop: ['debugger'],
     pure: ['console.log', 'console.debug'],
   },
+  // Unit tests (Vitest). Pure logic only, so no DOM environment is needed.
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.js'],
+  },
   // Optimize dependency pre-bundling
   optimizeDeps: {
     include: ['react', 'react-dom'],

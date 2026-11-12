@@ -9,9 +9,34 @@
  * entry by id when the promise settles.
  */
 import { askGrokStream } from '../services/aiService';
+import { fetchWeather } from '../services/weatherService';
+import { evaluateExpression, formatResult } from '../utils/calc';
 import { escapeHtml, sanitizeAiHtml } from '../utils/escapeHtml';
 import { lookupCommandMeta } from './derived';
 import { CATEGORY_LABELS } from './types';
+
+/**
+ * Targets for `open`. A Map, not an object literal: the key is user input, and
+ * `({})['constructor']` is truthy, so `open constructor` used to "open" a
+ * function's source text as a URL.
+ */
+const OPEN_TARGETS = new Map([
+    ['linkedin', 'https://linkedin.com/in/teo-clerici'],
+    ['github', 'https://github.com/teo-clerk'],
+    ['email', 'mailto:clerici.teo5@gmail.com'],
+]);
+
+/**
+ * `runDynamic` receives the input as typed, not lowercased (so `ask` and
+ * `cowsay` keep their capitals). Commands whose argument is a keyword must
+ * therefore strip the prefix case-insensitively and lowercase the rest: phone
+ * keyboards capitalise the first letter, and "Open linkedin" used to fail.
+ */
+const keywordArg = (cmd, prefix) =>
+    cmd.replace(new RegExp(`^${prefix}\\s*`, 'i'), '').trim().toLowerCase();
+
+/** True for `name` alone or `name <args>`, but not for `namesake`. */
+const isCommand = (cmd, name) => cmd === name || cmd.startsWith(`${name} `);
 
 /** One `KEY  value` row of a manual page. */
 const manRow = (label, value) =>
@@ -68,14 +93,10 @@ export const dynamicCommands = [
         description: 'Open LinkedIn, GitHub or email',
         match: cmd => cmd.startsWith('open '),
         runDynamic: (cmd) => {
-            const target = cmd.replace('open ', '').trim();
-            const links = {
-                linkedin: 'https://linkedin.com/in/teo-clerici',
-                github:   'https://github.com/teo-clerk',
-                email:    'mailto:clerici.teo5@gmail.com',
-            };
-            if (links[target]) {
-                const specialAction = () => window.open(links[target], '_blank');
+            const target = keywordArg(cmd, 'open');
+            const url = OPEN_TARGETS.get(target);
+            if (url) {
+                const specialAction = () => window.open(url, '_blank', 'noopener,noreferrer');
                 return { outputContent: `<div>🔗 Opening <strong>${escapeHtml(target)}</strong>...</div><br>`, shouldAnimate: false, specialAction };
             } else {
                 return { outputContent: `<div>Unknown target: <em>${escapeHtml(target)}</em>. Try: <span class="command-highlight" data-cmd="open linkedin">linkedin</span>, <span class="command-highlight" data-cmd="open github">github</span>, <span class="command-highlight" data-cmd="open email">email</span></div><br>`, shouldAnimate: false };
@@ -87,7 +108,7 @@ export const dynamicCommands = [
         category: 'terminal',
         match: cmd => cmd.startsWith('theme '),
         runDynamic: (cmd, ctx) => {
-            const themeName = cmd.replace('theme ', '').trim();
+            const themeName = keywordArg(cmd, 'theme');
             if (ctx.applyTheme(themeName)) {
                 return { outputContent: `<div>🎨 Theme switched to <strong>${escapeHtml(themeName)}</strong>.</div><br>`, shouldAnimate: false };
             } else {
@@ -98,7 +119,7 @@ export const dynamicCommands = [
     {
         name: 'sudo',
         category: 'terminal',
-        match: cmd => cmd.startsWith('sudo'),
+        match: cmd => isCommand(cmd, 'sudo'),
         runDynamic: () => ({ outputContent: `<div><span style="color:#ff5f56;">Permission denied</span>: you are not root.<br>With great power comes great responsibility — and you don't have <em>either</em> here.<br>Try <span class="command-highlight" data-cmd="contact">contact</span> if you want to talk.</div><br>`, shouldAnimate: false })
     },
     {
@@ -113,11 +134,8 @@ export const dynamicCommands = [
                 return { outputContent: `<div>Usage: <span class="command-highlight" data-cmd="calc 5 * 10">calc [math expression]</span></div><br>`, shouldAnimate: false };
             } else {
                 try {
-                    if (!/^[0-9+\-*/().\s]+$/.test(expression)) {
-                        throw new Error('Invalid characters');
-                    }
-                    const result = new Function(`"use strict"; return (${expression})`)();
-                    return { outputContent: `<div><span style="color:#aaa;">${escapeHtml(expression)} =</span> <strong>${result}</strong></div><br>`, shouldAnimate: false };
+                    const result = formatResult(evaluateExpression(expression));
+                    return { outputContent: `<div><span style="color:#aaa;">${escapeHtml(expression)} =</span> <strong>${escapeHtml(result)}</strong></div><br>`, shouldAnimate: false };
                 } catch {
                     return { outputContent: `<div style="color:#ff5f56;">Error evaluating expression. Usage: <span class="command-highlight" data-cmd="calc 5 * 4">calc [math]</span></div><br>`, shouldAnimate: false };
                 }
@@ -215,7 +233,7 @@ ${bot}
         category: 'terminal',
         usage: 'weather [city]',
         description: 'Get current weather',
-        match: cmd => cmd.startsWith('weather') || cmd === 'weather',
+        match: cmd => isCommand(cmd, 'weather'),
         runDynamic: (cmd, ctx) => {
             const city = cmd.replace(/^weather\s*/i, '').trim();
             if (!city) {
@@ -235,20 +253,10 @@ ${bot}
                 ctx.setInputVal('');
                 ctx.setIsTyping(true);
                 
-                fetch(`https://wttr.in/${city}?format=3`)
-                    .then(res => {
-                        if (!res.ok) throw new Error("Network/CORS error");
-                        return res.text();
-                    })
-                    .catch(() => {
-                        return fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://wttr.in/${city}?format=3`)}`)
-                            .then(res => {
-                                if (!res.ok) throw new Error("Proxy error");
-                                return res.text();
-                            });
-                    })
+                // fetchWeather encodes the city and gives up after a timeout, so
+                // a stalled request can no longer leave the terminal locked.
+                fetchWeather(city)
                     .then(text => {
-                        if (!text || text.includes('Unknown location')) throw new Error("Not found");
                         ctx.setHistory(current => current.map(item => 
                             item.id === weatherId 
                                 ? { ...item, content: `<div style="color:#ddd;">☁️ ${escapeHtml(text)}</div><br>`, isAnimated: true } 
@@ -272,7 +280,7 @@ ${bot}
         category: 'terminal',
         usage: 'volume [0-100]',
         description: 'Set global audio volume',
-        match: cmd => cmd.startsWith('volume') || cmd === 'volume',
+        match: cmd => isCommand(cmd, 'volume'),
         runDynamic: (cmd, ctx) => {
             const val = cmd.replace(/^volume\s*/i, '').trim();
             if (!val) {

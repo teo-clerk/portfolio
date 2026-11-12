@@ -27,12 +27,25 @@ const SECTIONS = [
   ['education', 'Education'],
   ['experience', 'Experience'],
   ['projects', 'Projects'],
+  ['floodfusion', 'FloodFusion in detail'],
   ['skills', 'Skills'],
+  ['publications', 'Publications'],
   ['certifications', 'Certifications'],
   ['awards', 'Awards'],
   ['languages', 'Languages'],
   ['interests', 'Interests'],
 ];
+
+const SECTION_KEYS = new Set(SECTIONS.map(([key]) => key));
+
+/**
+ * A clickable terminal command means nothing on a static page. When it names a
+ * section that exists here, turn it into an in-page link; otherwise keep just
+ * the text. Must run before the generic `</span>` → `</li>` rewrite below,
+ * which would otherwise close the surrounding list item early.
+ */
+const commandToLink = (_match, cmd, label) =>
+  SECTION_KEYS.has(cmd) ? `<a href="#${cmd}-heading">${label}</a>` : label;
 
 /**
  * cvData values are terminal-flavoured HTML fragments. Strip the presentational
@@ -41,6 +54,7 @@ const SECTIONS = [
  */
 const toSemantic = (html) =>
   html
+    .replace(/<span class="command-highlight" data-cmd="([^"]*)">([\s\S]*?)<\/span>/g, commandToLink)
     .replace(/<span class="section-title">[\s\S]*?<\/span>/g, '')
     .replace(/<span class="list-item">/g, '<li>')
     .replace(/<\/span>/g, '</li>')
@@ -66,7 +80,7 @@ const page = `<!doctype html>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Teo Clerici Jurado — CV</title>
-    <meta name="description" content="Curriculum vitae of Teo Clerici Jurado — second-year AI &amp; Data Science student at H-FARM College (University of Chichester), builder of SciNet and LaCasitaOS, Educational Mentor with the MIT Edgerton Center, heading toward aerospace and Earth-observation AI." />
+    <meta name="description" content="Curriculum vitae of Teo Clerici Jurado — AI &amp; Data Science undergraduate (year 2 of 3) at H-FARM College (University of Chichester). Builder of FloodFusion (flood maps from Sentinel-1 radar), MDlearn, SciNet and LaCasitaOS; Educational Mentor with the MIT Edgerton Center." />
     <link rel="canonical" href="${SITE}/cv" />
     <link rel="icon" type="image/png" sizes="32x32" href="/duck-32.png" />
     <meta name="theme-color" content="#0a0a0a" />

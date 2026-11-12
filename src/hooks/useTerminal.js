@@ -1,20 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { asciiArt, asciiArtMobile, asciiArtFull } from '../data/cvData';
 import { resolveCommand, commandsList } from '../commands/registry';
+import { resolveDeepLink } from '../commands/deepLink';
 import { escapeHtml } from '../utils/escapeHtml';
 import { readStorage, writeStorage } from '../utils/storage';
-
-const THEMES = {
-    purple: { accent: '#8A2BE2', bg: 'rgba(20, 20, 20, 0.5)' },
-    green:  { accent: '#27c93f', bg: 'rgba(0, 20, 5, 0.55)' },
-    amber:  { accent: '#ffbd2e', bg: 'rgba(20, 15, 0, 0.55)' },
-    spiderman: { accent: '#ff0000', bg: 'rgba(0, 20, 50, 0.75)' },
-};
+import { getTheme } from '../utils/themes';
 
 const THEME_STORAGE_KEY = 'theme';
 
-/** Longest `?cmd=` value we will dispatch. Guards against a junk-stuffed URL. */
-const MAX_DEEP_LINK_LENGTH = 64;
+/**
+ * Keys that mean "show me the rest now" while output is still being typed out:
+ * any printable character, Enter or Escape. Modifier chords (Ctrl/Cmd+K opens
+ * the palette), Tab and the arrow keys are left alone.
+ */
+const isSkipKey = (e) =>
+    !e.ctrlKey && !e.metaKey && !e.altKey
+    && (e.key.length === 1 || e.key === 'Enter' || e.key === 'Escape');
 
 const paintTheme = (name, theme) => {
     document.documentElement.setAttribute('data-theme', name);
@@ -31,13 +32,15 @@ const paintTheme = (name, theme) => {
  * "unknown theme" output, so it must stay synchronous — `startViewTransition`
  * returns immediately and commits the DOM write in a callback, which is fine.
  *
- * Persistence deliberately stores only the theme NAME. THEMES here and the
- * `[data-theme]` blocks in index.css already have to agree; resolving colours
+ * Persistence deliberately stores only the theme NAME. THEMES (utils/themes.js)
+ * and the `[data-theme]` blocks in index.css already have to agree; resolving colours
  * from a third copy (say, an inline hydration script) would be a third place to
  * drift. Hydration therefore happens on mount, below, not before first paint.
  */
 const applyTheme = (name) => {
-    const theme = THEMES[name];
+    // getTheme looks the name up in a Map, so prototype keys such as
+    // "constructor" are unknown themes rather than truthy junk.
+    const theme = getTheme(name);
     if (!theme) return false;
 
     const commit = () => paintTheme(name, theme);
@@ -137,8 +140,9 @@ export const useTerminal = () => {
         // unsupported/blocked storage read simply leaves the CSS default in
         // place rather than throwing.
         const storedTheme = readStorage('localStorage', THEME_STORAGE_KEY);
-        if (storedTheme && THEMES[storedTheme]) {
-            paintTheme(storedTheme, THEMES[storedTheme]);
+        const storedThemeColors = getTheme(storedTheme);
+        if (storedThemeColors) {
+            paintTheme(storedTheme, storedThemeColors);
         }
 
         // Deep link: `?cmd=recruiter` runs a command on arrival. BootSequence
@@ -146,18 +150,19 @@ export const useTerminal = () => {
         // interactive by the time this lands. Dispatch goes through the tour
         // queue rather than runCommand directly — that effect already waits for
         // the welcome typewriter to finish instead of racing it.
+        //
+        // A link is written by someone other than the visitor, so the command
+        // is untrusted: resolveDeepLink only lets through commands that print
+        // CV content (plus help/tour/recruiter). Anything else is ignored.
         try {
-            const deepLink = new URLSearchParams(window.location.search).get('cmd');
-            const trimmed = deepLink?.trim();
-            if (trimmed && trimmed.length <= MAX_DEEP_LINK_LENGTH) {
-                setTourQueue([trimmed]);
-            }
+            const deepLink = resolveDeepLink(new URLSearchParams(window.location.search).get('cmd'));
+            if (deepLink) setTourQueue([deepLink]);
         } catch {
             /* URL unavailable — no deep link to honour */
         }
 
         const art = getAsciiArt();
-        const welcomeMessage = `<div style="color:var(--accent-color); margin-top: 15px; font-weight: bold;">TeoOS v20.26 (H-Farm Edition)</div><div style="color:#aaa; margin-top: 5px;">Welcome to the interactive terminal. Type <span class="command-highlight" data-cmd="help">help</span> to see all commands.</div><div style="margin-top: 12px; font-size: 0.9rem; color: #888;">Quick Start:</div><div style="display: flex; gap: 12px; margin-top: 6px;"><span class="command-highlight" data-cmd="about">#about</span> <span class="command-highlight" data-cmd="projects">#projects</span> <span class="command-highlight" data-cmd="tour">#tour</span></div><br>`;
+        const welcomeMessage = `<div style="color:var(--accent-color); margin-top: 15px; font-weight: bold;">TeoOS v20.26 (H-Farm Edition)</div><div style="color:#aaa; margin-top: 5px;">Welcome to the interactive terminal. Type <span class="command-highlight" data-cmd="help">help</span> to see all commands.</div><div style="margin-top: 12px; font-size: 0.9rem; color: #888;">Quick Start:</div><div style="display: flex; gap: 12px; margin-top: 6px;"><span class="command-highlight" data-cmd="about">#about</span> <span class="command-highlight" data-cmd="floodfusion">#floodfusion</span> <span class="command-highlight" data-cmd="projects">#projects</span> <span class="command-highlight" data-cmd="tour">#tour</span></div><br>`;
         setHistory([{ 
             id: 'init', 
             content: art + welcomeMessage, 
@@ -298,11 +303,34 @@ export const useTerminal = () => {
         if (shouldAnimate) setIsTyping(true);
     };
 
+    // Finish the line that is currently being typed out. OutputLine skips on
+    // click, so this clicks the newest line. (The old selector,
+    // `.output-line:last-child`, never matched: the last child of the terminal
+    // body is the input row.)
+    const skipTypewriter = () => {
+        const lines = terminalBodyRef.current?.querySelectorAll('.output-line');
+        lines?.[lines.length - 1]?.click();
+    };
+
+    // The input stays enabled while output is typing. It used to be `disabled`,
+    // which dropped focus on every command (closing the on-screen keyboard on
+    // phones) and meant no key event could ever reach the skip logic below.
+    const handleInputChange = (e) => {
+        if (isTyping) {
+            // On-screen keyboards report most keys as "Unidentified", so the
+            // keydown path below cannot see them; the change event can.
+            skipTypewriter();
+            return;
+        }
+        setInputVal(e.target.value);
+    };
+
     const handleKeyDown = (e) => {
         if (isTyping) {
-            e.preventDefault();
-            const activeLine = document.querySelector('.output-line:last-child');
-            if (activeLine) activeLine.click(); 
+            if (isSkipKey(e)) {
+                e.preventDefault();
+                skipTypewriter();
+            }
             return;
         }
 
@@ -351,6 +379,7 @@ export const useTerminal = () => {
         inputRef,
         terminalBodyRef,
         handleKeyDown,
+        handleInputChange,
         runCommand,
         showGame,
         setShowGame,

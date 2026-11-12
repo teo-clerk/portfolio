@@ -3,6 +3,7 @@ import { useTerminal } from '../hooks/useTerminal';
 import { useTypewriter } from '../hooks/useTypewriter';
 import { useTiltEffect } from '../hooks/useTiltEffect';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useLatestRef } from '../hooks/useLatestRef';
 import { readStorage, writeStorage } from '../utils/storage';
 import { PongGame } from './PongGame';
 import SnakeGame from './SnakeGame';
@@ -14,8 +15,8 @@ import CommandChips from './CommandChips';
 // Component to render a single line of output
 // `isStreaming` is consumed only by the comparator below, which receives the
 // whole props object, so it is intentionally not destructured here.
-const OutputLine = React.memo(({ content, isAnimated, onAnimationComplete }) => {
-  const { containerRef, skip } = useTypewriter(content, onAnimationComplete);
+const OutputLine = React.memo(({ id, content, isAnimated, onAnimationComplete }) => {
+  const { containerRef, skip } = useTypewriter(content, () => onAnimationComplete(id));
 
   if (!isAnimated) {
     return <div className="output-line" dangerouslySetInnerHTML={{ __html: content }} />;
@@ -111,10 +112,15 @@ const DoomOverlay = ({ onExit }) => {
         </span>
         <span style={doomStyles.barClose}>X CLOSE</span>
       </button>
+      {/* Third-party page: sandboxed so it can run its own scripts but cannot
+          navigate this tab, open popups or submit forms; no referrer sent. */}
       <iframe
         src="https://silentspacemarine.com/"
         style={doomStyles.frame}
         title="DOOM"
+        sandbox="allow-scripts allow-same-origin allow-pointer-lock"
+        referrerPolicy="no-referrer"
+        allow="fullscreen"
       />
     </div>
   );
@@ -124,12 +130,12 @@ const Terminal = ({ onOverlayChange }) => {
   const {
     history,
     inputVal,
-    setInputVal,
     isTyping,
     setIsTyping,
     inputRef,
     terminalBodyRef,
     handleKeyDown,
+    handleInputChange,
     runCommand,
     showGame,
     setShowGame,
@@ -149,6 +155,25 @@ const Terminal = ({ onOverlayChange }) => {
   const [idleHint, setIdleHint] = useState(false);
 
   const overlayActive = showGame || showMatrix || showDoom || showSnake;
+
+  // Called by a line when its typewriter finishes. Only the newest line may
+  // end the "typing" state.
+  //
+  // It reads history through a ref and has a stable identity on purpose.
+  // OutputLine's memo comparator freezes finished lines, so a line keeps the
+  // callback from the render that created it. The previous inline closure
+  // compared against `history.length` captured at that moment, so the welcome
+  // line (created when it was the only line) always believed it was the newest:
+  // a command run before the welcome text finished had its typing state cleared
+  // from under it, which also let the tour and deep links start their next
+  // command early.
+  const historyRef = useLatestRef(history);
+  const handleLineComplete = useCallback((id) => {
+    const lines = historyRef.current;
+    if (lines[lines.length - 1]?.id !== id) return;
+    setIsTyping(false);
+    setTimeout(() => inputRef.current?.focus(), 10);
+  }, [historyRef, setIsTyping, inputRef]);
 
   // Report overlay state upward so the WebGL background can stop rendering
   // while it is fully occluded.
@@ -197,8 +222,8 @@ const Terminal = ({ onOverlayChange }) => {
 
   useTiltEffect(wrapperRef);
 
-  // Cmd/Ctrl+K opens the palette from anywhere, including while the terminal
-  // input is disabled mid-animation.
+  // Cmd/Ctrl+K opens the palette from anywhere, including while output is
+  // still being typed.
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -388,20 +413,17 @@ const Terminal = ({ onOverlayChange }) => {
             role="log"
             aria-live="polite"
             aria-atomic="false"
+            aria-busy={isTyping}
             aria-label="Terminal output"
           >
-            {history.map((item, index) => (
+            {history.map((item) => (
               <OutputLine
                 key={item.id}
+                id={item.id}
                 content={item.content}
                 isAnimated={item.isAnimated}
                 isStreaming={item.isStreaming}
-                onAnimationComplete={() => {
-                  if (index === history.length - 1) {
-                    setIsTyping(false);
-                    setTimeout(() => inputRef.current?.focus(), 10);
-                  }
-                }}
+                onAnimationComplete={handleLineComplete}
               />
             ))}
 
@@ -420,9 +442,9 @@ const Terminal = ({ onOverlayChange }) => {
                 ref={inputRef}
                 type="text"
                 value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                disabled={isTyping || showGame}
+                disabled={showGame}
                 placeholder={
                   !inputVal && !isTyping
                     ? (idleHint ? 'try: recruiter' : "type 'help' — or press \u2318K")
@@ -430,6 +452,9 @@ const Terminal = ({ onOverlayChange }) => {
                 }
                 aria-label="Terminal command input"
                 autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                enterKeyHint="go"
                 spellCheck="false"
                 autoFocus={!showBoot}
               />

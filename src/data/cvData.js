@@ -1,15 +1,40 @@
 export const cvData = {
     'about': `
 <span class="section-title">PROFESSIONAL SUMMARY</span>
-Second-year <strong>AI &amp; Data Science</strong> undergraduate at <strong>H-FARM College</strong> (University of Chichester, UK) with a <strong>builder's mindset</strong>: I learn by building and shipping, from <strong>local-first ML tools</strong> to working <strong>hardware</strong>.
-Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club founder, now steering toward <strong>aerospace and deep tech</strong>: orbital mechanics at the H-FARM observatory today, Earth-observation AI next.
+<strong>AI &amp; Data Science</strong> undergraduate (<strong>year 2 of 3</strong>) at <strong>H-FARM College</strong> (University of Chichester, UK) with a <strong>builder's mindset</strong>: I learn by building and shipping, from <strong>open-source AI tools</strong> to working <strong>hardware</strong>.
+Trilingual <strong>MIT-affiliated hackathon mentor</strong> and campus-club founder, building <strong>AI for Earth observation</strong> and <strong>AI learning tools</strong>.
+`,
+    'floodfusion': `
+<span class="section-title">FEATURED PROJECT — FLOODFUSION</span>
+<span class="list-item"><strong>FloodFusion</strong> — calibrated flood maps from Sentinel-1 radar, with optional Sentinel-2 (Aug 2026 – Present)
+   <br>&nbsp;&nbsp;<a href="https://github.com/teo-clerk/floodfusion" target="_blank" rel="noopener noreferrer">Repository</a> · <a href="https://github.com/teo-clerk/floodfusion/releases/tag/v1.2.0" target="_blank" rel="noopener noreferrer">release v1.2.0 (MIT)</a> · <a href="https://github.com/teo-clerk/floodfusion/blob/main/paper/paper_v12.pdf" target="_blank" rel="noopener noreferrer">11-page preprint</a> · <a href="https://teo-clerk.github.io/floodfusion/arena.html" target="_blank" rel="noopener noreferrer">Arena</a>
+   <br>&nbsp;&nbsp;Stack: Python, PyTorch, TerraTorch, pystac, rasterio, xarray, Docker.</span>
+
+<span class="list-item"><strong>Problem.</strong> Flood maps an emergency duty officer can act on: calibrated, with a mask for where not to trust them, using Sentinel-2 only where the sky is clear.</span>
+
+<span class="list-item"><strong>Physics.</strong> Refined Lee speckle filter; slope, local incidence, shadow/layover and HAND terrain masks from Copernicus DEM; a Range–Doppler geocoder checked against ESA's geolocation tie points to 0.1 px.</span>
+
+<span class="list-item"><strong>Model.</strong> Gated cross-attention fusion: radar always on, optical admitted per pixel by a quality gate, so a closed gate is the radar-only path. About 19 M parameters, 6 ms per 256×256 chip on a laptop RTX 4060. v1.2 adds a seasonal radar reference (same orbit, one year earlier).</span>
+
+<span class="list-item"><strong>Data and product.</strong> Trained on Kuro Siwo and GEOID-Flood labels (7,006 chips, 138 floods), open data only. Threshold derived from a stated cost of misses vs false alarms, with conformal miss-rate control; output as Copernicus GFM-style COG layers plus a STAC 1.0 Item.</span>
+
+<span class="list-item"><strong>Results</strong> (38 Copernicus EMS flood activations, 2023–2026, mapped on non-Sentinel radar; frozen models scored once; descriptive).
+   <br>&nbsp;&nbsp;• <strong>IoU 0.417</strong> at its own threshold, vs 0.405 for a fairly trained TerraMind-base + LoRA (not significant) and 0.373 for the physics baseline.
+   <br>&nbsp;&nbsp;• On the 34 floods the operational <strong>Copernicus GFM</strong> covers: <strong>0.419 vs 0.321</strong> (+0.098, better on 25 of 34, Holm p = 0.001).
+   <br>&nbsp;&nbsp;• Forlì, May 2023 (EMSR664), zero-shot against the Copernicus EMS delineation: IoU 0.507; 28.0 km² flooded in both.</span>
+
+<span class="list-item"><strong>Evaluation.</strong> Pre-registered protocols for v1.1 and v1.2; models frozen at a git tag, and every new eligible Copernicus EMS flood scored into a <strong>sealed, hash-chained blind-test ledger</strong> until 20 activations or end-2027. 1,099 tests, 81.9 % coverage, every report tied to a git SHA.</span>
+
+<span class="list-item"><strong>What failed.</strong> A +0.265 IoU benchmark gain (Sen1Floods11, 0.608 vs 0.343) did not carry over to independent Copernicus maps; v1.1's win over TerraMind was a training bug, withdrawn in a <strong>published erratum</strong>; partly cloudy scenes still score lower with optical than without (0.254 vs 0.307).</span>
+
+<span class="list-item"><strong>How it was built.</strong> With AI coding agents under my scientific direction; every paper number traces to a report.</span>
 `,
     'education': `
 <span class="section-title">EDUCATION</span>
-<span class="list-item"><strong>BSc AI &amp; Data Science</strong> (Sep 2025 – Expected May 2028)
+<span class="list-item"><strong>BSc (Hons) AI &amp; Data Science</strong>, year 2 of 3 (Sep 2025 – Expected May 2028)
    H-FARM College, Venice, Italy — degree awarded by the University of Chichester (UK)
-   <br>&nbsp;&nbsp;• 180 ECTS, curriculum co-developed with <strong>Microsoft</strong>.
-   <br>&nbsp;&nbsp;• Key topics: Machine Learning, Python, Cloud Computing, Data Analysis, Entrepreneurship.
+   <br>&nbsp;&nbsp;• Year 1: <strong>77.8 % average</strong> (First-class standard), <strong>grade A in all six modules</strong>, incl. Algorithms &amp; Data Structures 84, Linear Algebra 81, Programming 80, Probability 77.
+   <br>&nbsp;&nbsp;• Year 2 (2026/27): Fundamentals of Statistics, Databases, Software Engineering, Introduction to Machine Learning.
    <br>&nbsp;&nbsp;• Founder of the H-Altura Club and Student Ambassador on campus.</span>
 
 <span class="list-item"><strong>Technology Baccalaureate, Engineering &amp; Technology</strong> (Sep 2023 – Jun 2025)
@@ -19,12 +44,15 @@ Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club
 `,
     'experience': `
 <span class="section-title">PROFESSIONAL EXPERIENCE</span>
+<span class="list-item"><strong>Student Host &amp; Moderator, ESA &ldquo;Space Isn't the Limit&rdquo;</strong> @ H-FARM Campus, Venice (Oct 2026)
+   <br>&nbsp;&nbsp;• Official student host of an ESA event: opened it, introduced six speakers, four from ESA (incl. the <strong>Heads of the AI &amp; Data Science, Structures and Innovation Services sections</strong>), and moderated the student Q&amp;A.</span>
+
 <span class="list-item"><strong>Q&amp;A Moderator, Futurist Session with Toshi Anders Hoo</strong> @ H-FARM Campus, Venice (Sep 2026)
    <br>&nbsp;&nbsp;• Moderated a 30-minute live Q&amp;A, turning emerging-technology and foresight themes into sharp, accessible questions.</span>
 
 <span class="list-item"><strong>Brand Ambassador &amp; Content Creator</strong> @ Audi We Generation — Audi Italia (May 2026 – Present)
    <br>&nbsp;&nbsp;• Selected as <strong>1 of 5</strong> representatives from <strong>1,300+ applicants</strong> for the 9th edition of this Audi × H-FARM programme.
-   <br>&nbsp;&nbsp;• Produce digital content and lead public discussions on innovation, technology and the future of mobility.</span>
+   <br>&nbsp;&nbsp;• Produce digital content and lead public discussions on innovation, technology, sustainability and the future of mobility.</span>
 
 <span class="list-item"><strong>Student Ambassador</strong> @ H-FARM College — Venice, Italy (Nov 2025 – Present)</span>
 
@@ -33,7 +61,8 @@ Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club
 
 <span class="list-item"><strong>Educational Mentor</strong> @ MIT Edgerton Center &amp; Fundació CIC (Jan 2025 – Present)
    <br>&nbsp;&nbsp;• Part of the <strong>MIT BCN Squad</strong>, running engineering design workshops worldwide.
-   <br>&nbsp;&nbsp;• Mentored student teams from ideation to prototype across <strong>4 programmes in 2025</strong>: MIT × CIC × UPC Hackathon (Jan), CIC Batxillerats TechProjects, BCN Tech Projects × UPC (Aug), International Hackathon Mexico (Oct, remote).</span>
+   <br>&nbsp;&nbsp;• Mentored teams from first idea to working prototype at <strong>MIT × CIC × UPC</strong> (Jan 2025), <strong>BCN Tech Projects × UPC</strong> (Aug 2025) and <strong>International Hackathon Mexico</strong> (Oct 2025, remote).
+   <br>&nbsp;&nbsp;• CIC TechProjects 2025: taught the engineering process to a 12th-grade class.</span>
 
 <span class="list-item"><strong>Private Tutor – Programming &amp; Mathematics</strong> @ Self-Employed, Barcelona (Sep 2022 – Jun 2024)
    <br>&nbsp;&nbsp;• One-on-one support in Python, C++ and Mathematics for secondary school students.</span>
@@ -43,21 +72,27 @@ Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club
 `,
     'projects': `
 <span class="section-title">PROJECTS &amp; INITIATIVES</span>
-<span class="list-item"><strong>SciNet</strong> — local-first 3D semantic map of a scientific library (2026 – Present) — <a href="https://github.com/teo-clerk/SciNet" target="_blank">github.com/teo-clerk/SciNet</a>
-   <br>&nbsp;&nbsp;• Parses PDFs (Marker/Surya OCR) into 1024-D embeddings and a UMAP/HDBSCAN 3D map with LLM-named regions.
-   <br>&nbsp;&nbsp;• <strong>506-paper</strong> library on one <strong>8 GB GPU</strong>, zero cloud egress by default.
-   <br>&nbsp;&nbsp;• Unit-aware quantity extraction (18 SI-normalised kinds), a cited local librarian agent and an MCP server (10 tools).
-   <br>&nbsp;&nbsp;• Released <strong>v0.1.0</strong> under the MIT licence. Stack: Python, FastAPI, Ollama, SQLite, Vite.</span>
+<span class="list-item"><strong>FloodFusion</strong> — calibrated flood maps from Sentinel-1 radar, with optional Sentinel-2 (Aug 2026 – Present) — <a href="https://github.com/teo-clerk/floodfusion" target="_blank" rel="noopener noreferrer">github.com/teo-clerk/floodfusion</a>
+   <br>&nbsp;&nbsp;• Radar physics (speckle filter, terrain masks) plus a SAR–optical model; output as Copernicus GFM-style COG layers and a STAC item.
+   <br>&nbsp;&nbsp;• On the 34 Copernicus EMS floods the operational Copernicus GFM covers: <strong>0.419 vs 0.321 IoU</strong> (+0.098, better on 25 of 34). Descriptive result; a pre-registered blind test is running.
+   <br>&nbsp;&nbsp;• <strong>1,099 tests</strong>, two published errata; <strong>v1.2.0</strong> public under the MIT licence with an 11-page preprint.
+   <br>&nbsp;&nbsp;• Stack: Python, PyTorch, TerraTorch, pystac, rasterio, xarray, Docker. Method, results and what failed: <span class="command-highlight" data-cmd="floodfusion">floodfusion</span></span>
 
-<span class="list-item"><strong>ISS Pass Prediction &amp; Satellite Tracking</strong> — H-FARM observatory (Sep 2026) — <a href="https://github.com/teo-clerk/hfarm-satellite-tracking" target="_blank">github.com/teo-clerk/hfarm-satellite-tracking</a>
-   <br>&nbsp;&nbsp;• SGP4-propagated TLEs give per-second alt/az passes and visibility; times match SkyTrack 2.0 to the second.
-   <br>&nbsp;&nbsp;• ASCOM mount readout measures open-loop pointing error against the ~0.04° EdgeHD budget; closed loop next.
-   <br>&nbsp;&nbsp;• Stack: Python, skyfield/SGP4, ASCOM.</span>
+<span class="list-item"><strong>MDlearn</strong> — turns class files or a topic into compiler-checked, spaced-repetition courses (Oct 2026 – Present) — <a href="https://github.com/teo-clerk/MDlearn" target="_blank" rel="noopener noreferrer">github.com/teo-clerk/MDlearn</a>
+   <br>&nbsp;&nbsp;• Add PDFs, slides, code or just a topic: an AI writes courses with worked examples and exercises, a strict Markdown compiler checks them, and FSRS spaced repetition schedules review. Local-first: no account, no analytics.
+   <br>&nbsp;&nbsp;• Ships on <strong>npm</strong> (<code>npx mdlearn studio</code>) and as <strong>desktop apps for Windows, macOS and Linux</strong>; a 15-tool MCP server lets AI assistants tutor from a course; interface in 5 languages.
+   <br>&nbsp;&nbsp;• <strong>v1.8.0</strong>, MIT licence. Stack: TypeScript, Node.js, React 19, Vite, Hono, Electron, Vitest, Playwright.</span>
 
-<span class="list-item"><strong>LaCasitaOS</strong> — co-living OS for student households (2026 – Present) — <a href="https://lacasitaos.app/" target="_blank">lacasitaos.app</a>
+<span class="list-item"><strong>SciNet</strong> — open-source 3D map of a scientific PDF library (2026 – Present) — <a href="https://github.com/teo-clerk/SciNet" target="_blank" rel="noopener noreferrer">github.com/teo-clerk/SciNet</a>
+   <br>&nbsp;&nbsp;• Turns a folder of scientific PDFs into a 3D map you can explore by topic: OCR, embeddings, UMAP/HDBSCAN clustering and plain-language names for each region.
+   <br>&nbsp;&nbsp;• Runs on one <strong>8 GB laptop GPU</strong> with no cloud calls by default; tested on a <strong>506-paper</strong> library.
+   <br>&nbsp;&nbsp;• Search by meaning or exact phrase, filters on measured quantities in 18 SI units, and an MCP server so AI coding assistants can read the library.
+   <br>&nbsp;&nbsp;• <strong>v0.1.0</strong>, MIT licence. Stack: Python, FastAPI, SQLite, Ollama, React.</span>
+
+<span class="list-item"><strong>La Casita (LaCasitaOS)</strong> — co-living OS for student households (2026 – Present) — <a href="https://lacasitaos.app/" target="_blank" rel="noopener noreferrer">lacasitaos.app</a>
    <br>&nbsp;&nbsp;• Receipt OCR, item-level weighted splits through a swipe UI and min-cash-flow debt simplification across <strong>7 modules</strong>.
-   <br>&nbsp;&nbsp;• Stripe subscription billing, push notifications and an Android build in Google Play closed testing.
-   <br>&nbsp;&nbsp;• Stack: Next.js 16, React 19, TypeScript, Prisma, Supabase, Stripe.</span>
+   <br>&nbsp;&nbsp;• Stripe billing, push notifications and an Android app in Google Play testing; written monetization plan.
+   <br>&nbsp;&nbsp;• Stack: Next.js 16, React 19, TypeScript, Prisma, Supabase/PostgreSQL, Stripe.</span>
 
 <span class="list-item"><strong>DIY Xenon Plasma Toroid</strong> — Independent High-Voltage Hardware Build
    <br>&nbsp;&nbsp;• Designed and built a working xenon plasma toroid: high-voltage drive electronics and gas-discharge apparatus.</span>
@@ -66,26 +101,29 @@ Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club
    <br>&nbsp;&nbsp;• Upload sheet music, get a step-by-step practice plan: PDF → optical music recognition → MusicXML/MIDI.
    <br>&nbsp;&nbsp;• Java / Spring Boot API, Angular frontend and a Python worker, run with Docker Compose.</span>
 
-<span class="list-item"><strong>ArTeo</strong> — personal portfolio and art gallery (2026 – Present) — <a href="https://arteo.teoclerici.com" target="_blank">arteo.teoclerici.com</a>
+<span class="list-item"><strong>ArTeo</strong> — personal portfolio and art gallery (2026 – Present) — <a href="https://arteo.teoclerici.com" target="_blank" rel="noopener noreferrer">arteo.teoclerici.com</a>
    <br>&nbsp;&nbsp;• Vision-model descriptions, trilingual stories and generated music per artwork, a 3D viewer and account-free checkout.
    <br>&nbsp;&nbsp;• Stack: Next.js, Prisma/Supabase, Stripe.</span>
 
-<span class="list-item"><strong>Interactive Terminal Portfolio</strong> — <a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a>
+<span class="list-item"><strong>Interactive Terminal Portfolio</strong> — <a href="https://github.com/teo-clerk" target="_blank" rel="noopener noreferrer">github.com/teo-clerk</a>
    <br>&nbsp;&nbsp;• The very site you're exploring right now.
    <br>&nbsp;&nbsp;• Built with <strong>React 19</strong> and hand-written <strong>WebGL2 GLSL shaders</strong> (no 3D framework), glassmorphism UI.
    <br>&nbsp;&nbsp;• Features: streaming AI assistant, typewriter animations, mini-games, hidden easter eggs, theme switching.</span>
 
-<span class="list-item"><strong>H-Altura Club</strong> (Founder &amp; Coordinator) @ H-FARM Campus (2025 – Present) — <a href="https://www.instagram.com/haltura.club/" target="_blank">@haltura.club</a>
+<span class="list-item"><strong>H-Altura Club</strong> (Founder &amp; Coordinator) @ H-FARM Campus (2025 – Present) — <a href="https://www.instagram.com/haltura.club/" target="_blank" rel="noopener noreferrer">@haltura.club</a>
    <br>&nbsp;&nbsp;• Founded and run the campus outdoor-activities club.
    <br>&nbsp;&nbsp;• <strong>100+ participants</strong> across community-building events.</span>
 `,
     'skills': `
 <span class="section-title">SKILLS</span>
 <span class="list-item"><strong>Technical:</strong>
-   <br>&nbsp;&nbsp;• Programming: Python (PyTorch, FastAPI), C/C++ (Arduino), TypeScript/React/Next.js, Java, SQL, Bash
-   <br>&nbsp;&nbsp;• AI &amp; Data: local LLMs (Ollama), embeddings, UMAP/HDBSCAN, OCR, OpenCV, MCP tooling, Power BI
-   <br>&nbsp;&nbsp;• Aerospace &amp; Hardware: TLE/SGP4 propagation, ASCOM telescope control, HV electronics, plasma physics
-   <br>&nbsp;&nbsp;• Tools: Linux (Arch/Hyprland), Git/GitHub, Docker, PostgreSQL/Supabase, LaTeX, Fusion 360, 3D printing
+   <br>&nbsp;&nbsp;• Earth Observation: Sentinel-1 SAR, Sentinel-2, Copernicus DEM, EMS &amp; GFM, STAC/COG, pystac, rasterio, xarray, GeoPandas
+   <br>&nbsp;&nbsp;• Machine Learning: PyTorch, TerraTorch (TerraMind + LoRA), segmentation, calibration, conformal prediction, model evaluation
+   <br>&nbsp;&nbsp;• Applied AI: local LLMs via Ollama, Claude Agent SDK, embeddings, UMAP/HDBSCAN, OCR (Marker, Surya), MCP servers
+   <br>&nbsp;&nbsp;• Software: Python (FastAPI, uv, pytest), Docker, GitHub Actions CI, SQLite, Linux (Arch/Hyprland), Git/GitHub
+   <br>&nbsp;&nbsp;• Web &amp; Product: TypeScript, React/Next.js, Node.js, Electron, Vitest/Playwright, Prisma, PostgreSQL/Supabase, Stripe
+   <br>&nbsp;&nbsp;• Other Languages: C/C++ (Arduino), Java (Spring Boot), SQL, Bash, LaTeX
+   <br>&nbsp;&nbsp;• Hardware: high-voltage electronics, Fusion 360, 3D printing
    <br>&nbsp;&nbsp;• Creative Technical: Photography, Astrophotography, Video Editing, Drone Piloting</span>
 
 <span class="list-item"><strong>Communication, Leadership &amp; Organization:</strong>
@@ -99,6 +137,11 @@ Trilingual, mentor at <strong>MIT-affiliated hackathons</strong> and campus-club
 <span class="list-item"><strong>MIT &amp; CIC &amp; UPC Hackathon Participation</strong> — MIT Edgerton Center (Jan 2024)</span>
 <span class="list-item"><strong>English Language Certification (Level B2)</strong> — Cambridge (Jul 2023)</span>
 <span class="list-item"><strong>C++ Programming – Competitive Programming</strong> — Olimpiada Informática Española (Jun 2022)</span>
+`,
+    'publications': `
+<span class="section-title">PUBLICATIONS</span>
+<span class="list-item"><strong>Labels, Thresholds and a Blind Test: Evaluating Sentinel-1 Flood Segmentation Against Independent Copernicus EMS Maps</strong> — T. Clerici Jurado, preprint, 11 pp., Oct 2026 (not peer reviewed) — <a href="https://github.com/teo-clerk/floodfusion/blob/main/paper/paper_v12.pdf" target="_blank" rel="noopener noreferrer">PDF</a>
+   <br>&nbsp;&nbsp;• The FloodFusion v1.2 technical paper, with a one-page extended abstract.</span>
 `,
     'awards': `
 <span class="section-title">AWARDS &amp; COMPETITIONS</span>
@@ -123,11 +166,12 @@ AI &amp; Machine Learning, Astrophysics, High-Altitude Hiking, Astrophotography,
 <span class="list-item"><strong>Email:</strong> <a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span>
 <span class="list-item"><strong>Phone:</strong> +34 615 451 338</span>
 <span class="list-item"><strong>Location:</strong> Venice, Italy</span>
-<span class="list-item"><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span>
-<span class="list-item"><strong>GitHub:</strong> <a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span>
+<span class="list-item"><strong>LinkedIn:</strong> <a href="https://linkedin.com/in/teo-clerici" target="_blank" rel="noopener noreferrer">linkedin.com/in/teo-clerici</a></span>
+<span class="list-item"><strong>GitHub:</strong> <a href="https://github.com/teo-clerk" target="_blank" rel="noopener noreferrer">github.com/teo-clerk</a></span>
 `
 };
 
+// Random ASCII art lives in ./randomArt.js.
 // helpText now lives in src/commands/registry.js, derived from the command
 // modules themselves so it can never drift from what is actually registered.
 export const whoamiText = `
@@ -136,10 +180,10 @@ export const whoamiText = `
   <div class="whoami-row"><span class="whoami-label">role</span><span class="whoami-value">AI &amp; Data Science Student · Builder · Mentor</span></div>
   <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy (H-FARM College)</span></div>
   <div class="whoami-row"><span class="whoami-label">languages</span><span class="whoami-value">ES · IT · CA · EN · FR</span></div>
-  <div class="whoami-row"><span class="whoami-label">stack</span><span class="whoami-value">Python · FastAPI · Local LLMs · TypeScript/Next.js · SGP4 · Power BI</span></div>
+  <div class="whoami-row"><span class="whoami-label">stack</span><span class="whoami-value">Python · PyTorch · Sentinel-1/2 · FastAPI · TypeScript/React · Docker</span></div>
   <div class="whoami-row"><span class="whoami-label">email</span><span class="whoami-value"><a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span></div>
-  <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span></div>
-  <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank" rel="noopener noreferrer">github.com/teo-clerk</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank" rel="noopener noreferrer">linkedin.com/in/teo-clerici</a></span></div>
 </div><br>
 `;
 
@@ -246,166 +290,6 @@ export const tarsText = `
   <div class="whoami-row"><span class="whoami-label">note</span><span class="whoami-value">This terminal is not TARS. But it admires him.</span></div>
 </div><br>
 `;
-
-// ── randomart pool (high-quality terminal art) ──────────────────────────────
-const randomArtPool = [
-
-  // ⚡️ Hogwarts Castle
-  { label: '\u26a1 Hogwarts', art:
-`          /\\
-         /ii\\
-        /iilli\\
-       /iilllli\\
-      /iilllllii\\
- |>  /ii/    \\ii\\  <|
- |> /ii/ /  \ \\ii\ <|
- |>/ii/ / /\ \ \\ii\<|
-  \ii/  \/__\/  \ii/
-   \|  _      _  |/
-    | |_| |  |_| |
-    |_____________|
-   ___|  Hogwarts |___
-  |___________________|` },
-
-  // ⚡️ Harry's scar / lightning bolt
-  { label: '\u26a1 The Boy Who Lived', art:
-`
-       ||
-      |||||
-     ||||||
-    ||| |||
-       |||
-      |||||
-     ||| ||
-    |||  ||
-       ||
-
-  • The Chosen One •` },
-
-  // △️ Deathly Hallows symbol
-  { label: '\u2656 The Deathly Hallows', art:
-`        /\\
-       /  \\
-      / /\ \\
-     / /ii\ \\
-    / /|  |\ \\
-   / / |  | \ \\
-  /   ( () )  \\
- /_____________\\
-      |    |
-      |    |
-
- The Elder Wand, the Stone,
-  and the Cloak of Invisibility.` },
-
-  // 🤖 Iron Man mask
-  { label: '\u2764 Iron Man', art:
-`     ____________
-   /            \\
-  / [##]  [##]  \\
- |  \\##/  \\##/   |
- |    \\    /    |
-  \   _\\  /_   /
-   \\ /  \/  \ /
-    \/___/\___\/
-    | • STARK • |
-     \___________/
-
-   I am Iron Man.` },
-
-  // 🕷️ Spider-Man face
-  { label: '\ud83d\udd77 Friendly Neighborhood', art:
-`     ______________
-   /   ____   _____\\
-  | /\\/ __ \\/ __\\ \\\\ |
-  |/ \\  __/  __/\\ \\\\|
-  |   \\____\\____/ /   |
-   \\   ------   /
-    \\____________/
-    \/\/\/\/\/\/\\/
-
- With great power comes
- great responsibility.` },
-
-  // 🛡️ Avengers A
-  { label: '\ud83d\udee1 Avengers', art:
-`        /\\
-       /AA\\
-      /AAAA\\
-     /AA--AA\\
-    /AAAAAAAA\\
-   /AA/    \\AA\\
-  /AA/  /\\  \\AA\\
- /____//__\\\\____\\
-
-  A V E N G E R S
-   E N D G A M E` },
-
-  // 鼞️ Thanos gauntlet (simplified)
-  { label: '\u221e Infinity Gauntlet', art:
-`   ___________
-  |  ⬤  ◆  ⬤  |
-  | ◆  ⬤  ◆  |
-  |  ⬤  ◆  ⬤  |
-   \\___________/
-    |  ||||   |
-    | |||||   |
-    |  ||||   |
-    \ \\||||  /
-     \\_____/
-
- "Perfectly balanced."` },
-
-  // 🌀 Gargantua — Interstellar black hole
-  { label: '\ud83c\udf00 Gargantua', art:
-`      . : █████ : .
-    .:███████████:.
-   :████   \\     ███:
-  :███  ( ● )   ███:
-  :███        /  ███:
-   :██████████████:
-    ''':█████:'''
-      ''' : '''
-
- Gargantua — Interstellar
- "Mankind was born on Earth.
-  It was never meant to die here."` },
-
-  // 📡 STAY — tesseract message
-  { label: '\ud83d\udce1 STAY', art:
-`███████╗████████╗ █████╗ ██╗   ██╗
-██╔════╝╚══██╔══╝██╔══██╗╚██╗ ██╔╝
-███████╗   ██║   ███████║ ╚████╔╝
-╚════██║   ██║   ██╔══██║  ╚██╔╝
-███████║   ██║   ██║  ██║   ██║
-╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝
-
-— Cooper's message from the tesseract
-  "Love is the one thing we're
-   capable of perceiving that
-   transcends dimensions of time."` },
-
-  // 🌌 Observer / astrophysics
-  { label: '\ud83d\udd2d Observatory', art:
-`       *  . *  ★  . *
-    .   ★    *    ★   .
-  *    .    ✦    .    *
-    ★    *    ★    *
-         ____
-        /    \\
-   ____/ /\\  \\____
-  |____|/  \\|____|
-  |   / dome \\   |
-  |  /________\\  |
-  |______________|  
-
-  • per aspera ad astra •` },
-];
-
-export const getRandomArt = () => {
-    const item = randomArtPool[Math.floor(Math.random() * randomArtPool.length)];
-    return `<div style="margin:4px 0;"><span style="color:var(--accent-color); font-size:0.75rem; letter-spacing:0.05em;">${item.label}</span><pre class="ascii-art" style="font-size:0.78rem; margin-top:6px; color:#ccc; line-height:1.3;">${item.art}</pre></div><br>`;
-};
 
 export const accioText = `<div>📖 <em>Accio CV...</em></div><div style="color:#aaa;">Summoning Teo_Clerici_CV.pdf from the restricted section... <em>Wingardium Leviosa!</em> It floats toward you.</div><br>`;
 
@@ -721,18 +605,6 @@ export const htopText = `
  4040 teo        20   0  1.1G  200M   80M S  0.0  1.2 12:00:00 spotify (Lofi Girl)
  9999 teo        20   0  500M  100M   20M R 10.0  0.6  0:01:12 node server.js
 </pre><br>`;
-
-export const snakeText = `
-<pre class="ascii-art" style="color:var(--accent-color);">
-       ---_ ......._-_--.
-      (|\\ /      / /| \\  \\
-      /  /     .'  -=-'   \`.
-     /  /    .'             )
-   _/  /   .'        _.)   /
-  / o   o   _(.-'----\\- -'
-  \\_-^_-^-_/
-</pre>
-<div style="color:#aaa;">Snake game module is currently offline for maintenance. But you found a snake! 🐍</div><br>`;
 
 export const ironmanText = `
 <div class="ironman-hud">

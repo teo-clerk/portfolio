@@ -6,9 +6,9 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/duck-192.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Teo Clerici Jurado | AI & Data Science Student</title>
-    <meta name="description" content="Official portfolio of Teo Clerici Jurado — second-year AI & Data Science student at H-FARM College (University of Chichester), builder of SciNet and LaCasitaOS, Educational Mentor with the MIT Edgerton Center, heading toward aerospace and Earth-observation AI." />
+    <meta name="description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science undergraduate (year 2 of 3) at H-FARM College (University of Chichester). Builder of FloodFusion (flood maps from Sentinel-1 radar), MDlearn, SciNet and LaCasitaOS; Educational Mentor with the MIT Edgerton Center; building AI for Earth observation." />
     <meta name="author" content="Teo Clerici Jurado" />
-    <meta name="keywords" content="Teo Clerici Jurado, portfolio, AI, Data Science, AI & Data Science, H-FARM College, University of Chichester, SciNet, LaCasitaOS, local LLMs, satellite tracking, aerospace, MIT Edgerton, developer, terminal, interactive" />
+    <meta name="keywords" content="Teo Clerici Jurado, portfolio, AI, Data Science, AI & Data Science, H-FARM College, University of Chichester, FloodFusion, Earth observation, Sentinel-1, Copernicus, MDlearn, SciNet, LaCasitaOS, MIT Edgerton, developer, terminal, interactive" />
     <link rel="canonical" href="https://teoclerici.com/" />
     <meta name="theme-color" content="#0a0a0a" />
 
@@ -24,7 +24,10 @@
 
     <!-- ═══ PERFORMANCE: Load Fira Code font with swap strategy ═══ -->
     <!-- Only load weight 400+700 to minimize download. display=swap ensures text is visible immediately with fallback font -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+    <!-- Fetched as a non-blocking "print" sheet; src/main.jsx flips it to "all" once it has
+         loaded. That used to be an inline onload="" handler, which the Content-Security-Policy
+         (script-src 'self', see vercel.json) would block. -->
+    <link id="deferred-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" media="print" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" /></noscript>
 
     <!-- ═══ PERFORMANCE: Inline critical above-the-fold CSS ═══ -->
@@ -64,6 +67,9 @@
         z-index: -1;
       }
       #root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+      /* Off-screen until focused: a crawlable, keyboard-reachable way out of the terminal UI. */
+      .skip-link { position: absolute; left: -9999px; top: 0; background: #8A2BE2; color: #fff; padding: .6rem 1rem; z-index: 10000; }
+      .skip-link:focus { left: 0; }
     </style>
 
     <!-- JSON-LD Structured Data for AEO -->
@@ -89,14 +95,15 @@
         "Artificial Intelligence",
         "Data Science",
         "Machine Learning",
+        "Earth Observation",
+        "Synthetic Aperture Radar (Sentinel-1)",
+        "Flood Mapping",
         "Python",
+        "PyTorch",
         "Local LLMs",
         "Semantic Search",
-        "Data Analysis",
         "Full-Stack Development",
-        "Orbital Mechanics (SGP4)",
-        "High-Voltage Electronics",
-        "Cloud Computing"
+        "High-Voltage Electronics"
       ],
       "alumniOf": [
         {
@@ -147,20 +154,40 @@
       "subjectOf": [
         {
           "@type": "SoftwareSourceCode",
+          "name": "FloodFusion",
+          "description": "Calibrated flood maps from Sentinel-1 radar with optional Sentinel-2: radar physics plus a gated SAR–optical fusion model, Copernicus GFM-style COG and STAC output. On the 34 Copernicus EMS floods covered by the operational Copernicus GFM it scores IoU 0.419 against 0.321 (descriptive; a pre-registered blind test is running).",
+          "codeRepository": "https://github.com/teo-clerk/floodfusion",
+          "url": "https://teo-clerk.github.io/floodfusion/arena.html",
+          "programmingLanguage": "Python",
+          "license": "https://opensource.org/licenses/MIT",
+          "keywords": "Earth Observation, Sentinel-1, SAR, Sentinel-2, Flood Mapping, Copernicus EMS, PyTorch, TerraTorch, STAC, COG"
+        },
+        {
+          "@type": "ScholarlyArticle",
+          "name": "Labels, Thresholds and a Blind Test: Evaluating Sentinel-1 Flood Segmentation Against Independent Copernicus EMS Maps",
+          "description": "FloodFusion v1.2 technical paper. Preprint, 11 pages, not peer reviewed.",
+          "url": "https://github.com/teo-clerk/floodfusion/blob/main/paper/paper_v12.pdf",
+          "datePublished": "2026-10",
+          "creativeWorkStatus": "Preprint",
+          "author": { "@type": "Person", "name": "Teo Clerici Jurado" }
+        },
+        {
+          "@type": "SoftwareSourceCode",
+          "name": "MDlearn",
+          "description": "Turns class files or a topic into compiler-checked courses with FSRS spaced repetition. Local-first; ships on npm and as desktop apps for Windows, macOS and Linux, with a 15-tool MCP server.",
+          "codeRepository": "https://github.com/teo-clerk/MDlearn",
+          "programmingLanguage": "TypeScript",
+          "license": "https://opensource.org/licenses/MIT",
+          "keywords": "Spaced Repetition, FSRS, TypeScript, React, Electron, Hono, MCP"
+        },
+        {
+          "@type": "SoftwareSourceCode",
           "name": "SciNet",
-          "description": "Open-source, local-first 3D semantic map of a scientific PDF library: OCR, embeddings and UMAP/HDBSCAN clustering with LLM-named regions, a cited local librarian agent and an MCP server, running on one 8 GB GPU with zero cloud egress by default.",
+          "description": "Open-source 3D map of a scientific PDF library: OCR, embeddings and UMAP/HDBSCAN clustering with plain-language region names, search by meaning or exact phrase and an MCP server, running on one 8 GB laptop GPU with no cloud calls by default.",
           "codeRepository": "https://github.com/teo-clerk/SciNet",
           "programmingLanguage": "Python",
           "license": "https://opensource.org/licenses/MIT",
           "keywords": "Local LLMs, Embeddings, UMAP, HDBSCAN, OCR, FastAPI, Ollama, MCP"
-        },
-        {
-          "@type": "SoftwareSourceCode",
-          "name": "ISS Pass Prediction & Satellite Tracking",
-          "description": "SGP4-propagated TLEs give per-second ISS alt/az passes for the H-FARM observatory; an ASCOM mount readout measures open-loop pointing error.",
-          "codeRepository": "https://github.com/teo-clerk/hfarm-satellite-tracking",
-          "programmingLanguage": "Python",
-          "keywords": "Orbital Mechanics, SGP4, TLE, skyfield, ASCOM, Telescope Control"
         },
         {
           "@type": "SoftwareApplication",
@@ -189,7 +216,7 @@
           "@type": "CreativeWork",
           "name": "DIY Xenon Plasma Toroid",
           "description": "A working xenon plasma toroid designed and built independently: high-voltage drive electronics and gas-discharge apparatus.",
-          "keywords": "Hardware Engineering, High-Voltage Electronics, Plasma Physics, Prototyping"
+          "keywords": "Hardware Engineering, High-Voltage Electronics, Prototyping"
         },
         {
           "@type": "CreativeWork",
@@ -199,7 +226,7 @@
           "keywords": "Leadership, Event Coordination, Student Community, Outdoor Activities"
         }
       ],
-      "description": "Second-year AI & Data Science student at H-FARM College (University of Chichester) who learns by building and shipping — local-first AI tools, full-stack products and hardware — and mentors engineering hackathons with the MIT Edgerton Center. Heading toward aerospace and Earth-observation AI."
+      "description": "AI & Data Science undergraduate (year 2 of 3) at H-FARM College (University of Chichester) who learns by building and shipping, from open-source AI tools to working hardware. MIT-affiliated hackathon mentor and club founder, building AI for Earth observation and AI learning tools."
     }
     </script>
 
@@ -207,7 +234,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://teoclerici.com/" />
     <meta property="og:title" content="Teo Clerici Jurado | AI & Data Science Student" />
-    <meta property="og:description" content="Official portfolio of Teo Clerici Jurado — second-year AI & Data Science student at H-FARM College (University of Chichester), builder of SciNet and LaCasitaOS, Educational Mentor with the MIT Edgerton Center, heading toward aerospace and Earth-observation AI." />
+    <meta property="og:description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science undergraduate (year 2 of 3) at H-FARM College (University of Chichester). Builder of FloodFusion (flood maps from Sentinel-1 radar), MDlearn, SciNet and LaCasitaOS; Educational Mentor with the MIT Edgerton Center; building AI for Earth observation." />
     <meta property="og:image" content="https://teoclerici.com/bg-hero.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -216,21 +243,21 @@
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://teoclerici.com/" />
-    <meta property="twitter:title" content="Teo Clerici Jurado | AI & Data Science Student" />
-    <meta property="twitter:description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science student who builds and ships: local-first AI tools, full-stack products and hardware." />
-    <meta property="twitter:image" content="https://teoclerici.com/bg-hero.jpg" />
-    <meta property="twitter:image:alt" content="Teo Clerici Jurado — AI & Data Science portfolio terminal" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://teoclerici.com/" />
+    <meta name="twitter:title" content="Teo Clerici Jurado | AI & Data Science Student" />
+    <meta name="twitter:description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science undergraduate building AI for Earth observation: FloodFusion, MDlearn, SciNet and LaCasitaOS." />
+    <meta name="twitter:image" content="https://teoclerici.com/bg-hero.jpg" />
+    <meta name="twitter:image:alt" content="Teo Clerici Jurado — AI & Data Science portfolio terminal" />
   </head>
   <body>
     <div id="root"></div>
     <noscript>
       <div style="max-width:60ch;margin:2rem auto;padding:1rem;font-family:monospace;color:#eee;">
         <h1>Teo Clerici Jurado</h1>
-        <p>Second-year AI &amp; Data Science student at H-FARM College (University of
-        Chichester), builder of SciNet and LaCasitaOS, and Educational Mentor with the
-        MIT Edgerton Center.</p>
+        <p>AI &amp; Data Science undergraduate (year 2 of 3) at H-FARM College (University
+        of Chichester). Builder of FloodFusion (flood maps from Sentinel-1 radar), MDlearn,
+        SciNet and LaCasitaOS, and Educational Mentor with the MIT Edgerton Center.</p>
         <p>This portfolio is an interactive terminal and needs JavaScript.
         Read the <a href="/cv">plain-text CV</a>,
         <a href="/CV.pdf">download the PDF</a>, or email
@@ -239,8 +266,7 @@
     </noscript>
     <!-- Crawlable link to the static CV. Visually hidden but focusable, so it
          also gives keyboard users an escape hatch out of the terminal UI. -->
-    <a href="/cv" style="position:absolute;left:-9999px;top:0;background:#8A2BE2;color:#fff;padding:.6rem 1rem;z-index:10000;"
-       onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Plain-text CV</a>
+    <a href="/cv" class="skip-link">Plain-text CV</a>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

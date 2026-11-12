@@ -33,6 +33,7 @@ import {
   starlordText,
   htopText,
   gargantuaText,
+  interstellarText,
 } from '../data/cvData';
 import { runNamed } from './derived';
 
@@ -82,7 +83,7 @@ export const eastereggCommands = [
         outputContent: accioText,
         shouldAnimate: false,
         specialAction: () => {
-            window.open('/CV.pdf', '_blank');
+            window.open('/CV.pdf', '_blank', 'noopener');
         }
     }),
   },
@@ -269,7 +270,7 @@ export const eastereggCommands = [
     category: "egg",
     run: (ctx) => {
         ctx.playSound('r2d2.mp3');
-        return { outputContent: r2d2Text, shouldAnimate: false, specialAction: () => ctx.playSound('r2d2.mp3') };
+        return { outputContent: r2d2Text, shouldAnimate: false };
     },
   },
   {
@@ -465,7 +466,7 @@ export const eastereggCommands = [
   {
     name: "starlord",
     category: "egg",
-    run: (ctx) => { ctx.playSound('starlord.mp3'); return { outputContent: starlordText, shouldAnimate: false, specialAction: () => ctx.playSound('starlord.mp3') }; },
+    run: (ctx) => { ctx.playSound('starlord.mp3'); return { outputContent: starlordText, shouldAnimate: false }; },
   },
   {
     name: "star lord",
@@ -504,7 +505,7 @@ export const eastereggCommands = [
   {
     name: "gargantua",
     category: "egg",
-    run: (ctx) => { ctx.playSound('gargantua.mp3'); return { outputContent: gargantuaText, shouldAnimate: false }; },
+    run: () => ({ outputContent: gargantuaText, shouldAnimate: false }),
   },
   {
     name: "black hole",
@@ -515,13 +516,13 @@ export const eastereggCommands = [
   {
     name: "interstellar",
     category: "egg",
-    run: (ctx) => runNamed('gargantua', ctx),
+    run: () => ({ outputContent: interstellarText, shouldAnimate: false }),
   },
   {
     name: "cooper",
     aliasOf: "interstellar",
     category: "egg",
-    run: (ctx) => runNamed('gargantua', ctx),
+    run: (ctx) => runNamed('interstellar', ctx),
   },
   {
     name: "cat",
@@ -531,7 +532,7 @@ export const eastereggCommands = [
   {
     name: "pato",
     category: "egg",
-    run: (ctx) => { ctx.playSound('quack.mp3'); return { outputContent: patoText, shouldAnimate: false, specialAction: () => ctx.playSound('quack.mp3') }; },
+    run: (ctx) => { ctx.playSound('quack.mp3'); return { outputContent: patoText, shouldAnimate: false }; },
   },
   {
     name: "duck",

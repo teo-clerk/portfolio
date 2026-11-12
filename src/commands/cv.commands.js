@@ -29,8 +29,8 @@ export const cvCommands = [
   <div class="whoami-row"><span class="whoami-label">email</span><span class="whoami-value"><a href="mailto:clerici.teo5@gmail.com">clerici.teo5@gmail.com</a></span></div>
   <div class="whoami-row"><span class="whoami-label">phone</span><span class="whoami-value">+34 615 451 338</span></div>
   <div class="whoami-row"><span class="whoami-label">location</span><span class="whoami-value">Venice, Italy</span></div>
-  <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank">linkedin.com/in/teo-clerici</a></span></div>
-  <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank">github.com/teo-clerk</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">linkedin</span><span class="whoami-value"><a href="https://linkedin.com/in/teo-clerici" target="_blank" rel="noopener noreferrer">linkedin.com/in/teo-clerici</a></span></div>
+  <div class="whoami-row"><span class="whoami-label">github</span><span class="whoami-value"><a href="https://github.com/teo-clerk" target="_blank" rel="noopener noreferrer">github.com/teo-clerk</a></span></div>
   <div class="whoami-row" style="margin-top:8px;"><span style="color:#aaa; font-size:0.85rem;">Want to send a message now? Type <span class="command-highlight" data-cmd="email">email</span></span></div>
 </div><br>`, shouldAnimate: false
     }),
