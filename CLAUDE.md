@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Interactive terminal-style portfolio for Teo Clerici. React 19 + Vite SPA, deployed on Vercel. The entire site is one CLI: visitors type commands into a fake terminal to read the CV, trigger easter eggs, play mini-games, and chat with an AI. There is no routing and no scrolling page.
+Interactive terminal-style portfolio for Teo Clerici. React 19 + Vite SPA, deployed on Vercel. The site is one CLI: visitors type commands into a fake terminal to read the CV, trigger easter eggs, play mini-games, and chat with an AI. A first visit opens on the orbit landing (`src/intro`), a conventional page with buttons that leads into the terminal. There is no routing and no scrolling page.
 
 ## Commands
 
@@ -16,12 +16,13 @@ npm run lint         # ESLint flat config (eslint.config.js)
 npm test             # Vitest unit tests (tests/*.test.js, Node environment, no DOM)
 npm run check:vercel # compile every vercel.json route pattern the way Vercel does
 npm run check:api    # load api/*.js under native Node ESM
+node scripts/render-poster.mjs   # re-render the landing posters + og-card.jpg (not a build step; see its header)
 ```
 
 `npm run build` runs `check:vercel`, `npm test`, `generate:cv` and `check:api` before Vite. Each gate exists because the failure it catches once shipped silently:
 
 - **`check:vercel`** — Vercel compiles every `source` in `vercel.json` with path-to-regexp v6 before building, and a pattern it rejects fails the whole deployment while the previous build keeps serving. `"/(?:CV|cv)\\.pdf"` (a top-level group may not start with `?`) froze production from 2026-09-16 to 2026-11 without anyone noticing. Vite never reads `vercel.json`, so nothing else can see this.
-- **`npm test`** — pure-logic tests: the AI sanitiser, the `calc` parser, the deep-link allow-list, registry integrity (every referenced `.mp3` exists, sounds play once), the CSP shape, and that CV claims which were never built stay out of the published content.
+- **`npm test`** — pure-logic tests: the AI sanitiser, the `calc` parser, the deep-link allow-list, the landing's decisions and the rule that `three` stays in its lazy chunk, registry integrity (every referenced `.mp3` exists, sounds play once), the CSP shape, and that CV claims which were never built stay out of the published content.
 - **Lint** is clean (0 errors, 0 warnings) — **keep it that way**; a noisy gate previously hid four genuinely broken commands behind 400+ errors from a committed `.vite` cache.
 
 **A failed Vercel deploy is silent.** After any push, check `gh api repos/teo-clerk/portfolio/commits/<sha>/status`.
@@ -38,6 +39,8 @@ npm run check:api    # load api/*.js under native Node ESM
 - **`low`** (coarse pointer / small viewport) gets one wave, DPR 1.25, ~30 fps.
 - **`high`** gets three waves, cursor interaction and parallax.
 
+The background is mounted **only while the terminal is docked** (`App.jsx`). On the landing the orbit scene owns the one WebGL context, so the two never hold a context at the same time; do not move `FloatingLines` out of the docked branch.
+
 `FloatingLines.jsx` is **raw WebGL2 with no framework** (Three.js was removed — it cost 123 kB gzipped to draw one triangle; the replacement is ~5 kB). Invariants:
 
 - It creates its WebGL context in a **create-once effect with empty deps**; prop changes are pushed into a plain uniform-state object by a second effect and uploaded every frame. Never add props to the init effect's dependency array — that is what previously rebuilt (and leaked) the GL context on every render. Any object or array prop passed to it must have a stable identity: module-scope constants, not inline literals or default parameter objects.
@@ -48,6 +51,19 @@ npm run check:api    # load api/*.js under native Node ESM
 - Time is wall-clock (`performance.now() - t0`), so it keeps advancing while paused/hidden and never jumps on resume.
 
 The render loop is gated on `IntersectionObserver`, `visibilitychange`, and a `paused` prop that `Terminal` drives via `onOverlayChange` when a full-screen overlay opens.
+
+### Orbit landing (`src/intro`)
+
+`App.jsx` holds one piece of state, `session = { view: 'orbit' | 'terminal', command }`. `shouldShowIntro()` decides the starting view: the landing, unless the URL has `?cmd=` or this tab has already docked (sessionStorage `booted`). `Terminal` is mounted only while docked, so every dock starts a fresh terminal.
+
+- **`Landing.jsx`** is real HTML and must stay usable with no JS-driven visuals: `<h1>`, the role line, buttons **Enter terminal** / **60-second summary** (docks, then runs `recruiter`) / **Read the CV** (`/cv`) / **Download PDF**, and a FloodFusion link (docks, then runs `floodfusion`). Enter anywhere docks. The backdrop is a still poster on every device.
+- **`getIntroMode(tier)`** maps the device tier to `'scene'` (`high`: live Three.js over the poster), `'poster'` (`low`: poster plus a CSS zoom into the monitor; no WebGL) or `'static'` (`none`: poster, no animation, instant cut).
+- **`three` is imported by `src/intro/orbitScene.js` and nowhere else**, and that module is reached only through the dynamic `import()` in `useOrbitScene.js`, which waits for first contentful paint. That is the whole reason a 133 kB (gzip) library is acceptable: phones never request it and it never blocks a paint. `tests/introState.test.js` enforces both halves. Do not import `three` (or `orbitScene`) statically anywhere, and do not add React Three Fiber.
+- **`orbitScene.js`** is framework-free and follows the `FloatingLines` rules: one context created once per mount, no rendering while the tab is hidden, clamped DPR, everything disposed and `forceContextLoss()` on teardown. Models are built from primitives; the Earth texture is NASA Blue Marble (public domain).
+- **The poster is a render of the scene at t = 0** (`scripts/render-poster.mjs` → `src/intro/assets/orbit-poster-*`, `posterMeta.js`, `public/og-card.jpg`). Every motion in the scene is zero at t = 0 and the star field is seeded, so the live scene cross-fades over the poster without a jump. After changing anything visible in the scene, re-run the script and commit the images; never use `Math.random()` in the scene.
+- **Three places share the 23/20 portrait split**: `PORTRAIT_MAX_ASPECT` (scene camera), the `<source media>` queries in `Landing.jsx`, and `intro.css`. The portrait poster is anchored `object-position: center top`, and `Landing.jsx` passes the same anchor to `computePosterZoom()`.
+- **Docking**: `Landing` runs the fly-in (camera move, or poster zoom), then calls `onDock(command)`; `App` swaps the views under a short veil in the monitor's colour. **Undocking** (`exit` / `quit` → `ctx.onUndock`) always happens in a later task, never inside the keydown that ran the command: the landing focuses its primary button and listens for Enter, so mounting it synchronously let the same key press dock straight back in.
+- The old full-screen `BootSequence` is gone. Its lines (`src/data/bootLines.js`) type out on the 3D monitor during the fly-in.
 
 ### Command pipeline
 
@@ -72,7 +88,7 @@ Executors return a result object; every field is optional:
 }
 ```
 
-`ctx` gives executors the terminal's full state surface: `newHistory`, `setHistory`, `setInputVal`, `setIsTyping`, `applyTheme`, `playSound`, `toggleLoopingSound`, `globalVolume`/`setGlobalVolume`, `setShowGame`/`setShowMatrix`/`setShowDoom`/`setShowSnake`, `commandHistory`/`setCommandHistory`, `setHistoryIndex`, `setTourQueue`.
+`ctx` gives executors the terminal's full state surface: `newHistory`, `setHistory`, `setInputVal`, `setIsTyping`, `applyTheme`, `playSound`, `toggleLoopingSound`, `globalVolume`/`setGlobalVolume`, `setShowGame`/`setShowMatrix`/`setShowDoom`/`setShowSnake`, `commandHistory`/`setCommandHistory`, `setHistoryIndex`, `setTourQueue`, `onUndock` (leave the terminal for the landing; used by `exit`).
 
 ### Async commands
 
@@ -97,7 +113,7 @@ Add one object to the right category module in `src/commands/` (contract in `typ
 
 ### Deep links
 
-`?cmd=<command>` runs a command on arrival, through `resolveDeepLink()` in `src/commands/deepLink.js`. A link is written by a third party, so the command is untrusted: only exact registry commands with `category: 'cv'`, plus `help`, `tour` and `recruiter`, are allowed. Pattern commands are never allowed — `?cmd=ask …` used to fire a billed AI request with attacker-chosen text. Do not widen the list to anything with a side effect.
+`?cmd=<command>` skips the landing and runs a command on arrival, through `resolveDeepLink()` in `src/commands/deepLink.js`. `App.jsx` reads the parameter and hands the result to the terminal as `initialCommand`; `useTerminal` validates it again, because the landing's shortcut buttons use the same prop. A link is written by a third party, so the command is untrusted: only exact registry commands with `category: 'cv'`, plus `help`, `tour` and `recruiter`, are allowed. Pattern commands are never allowed — `?cmd=ask …` used to fire a billed AI request with attacker-chosen text. Do not widen the list to anything with a side effect.
 
 ### Terminal input and the typing state
 
@@ -120,9 +136,10 @@ The system prompt lives in `src/services/systemPrompt.js` and is shared by both 
 
 Core Web Vitals were tuned deliberately; changes here regress real metrics:
 
-- `index.html` holds inline critical CSS, an LQIP background, AVIF/WebP preloads, and deferred Google Fonts (`media="print"`, switched to `all` from `src/main.jsx` once loaded — not an inline `onload`, which the CSP forbids).
+- `index.html` holds inline critical CSS, an LQIP background, AVIF preloads for the landing's poster (one per composition, behind `media` queries; Vite rewrites the `/src/...` paths to the hashed files), and deferred Google Fonts (`media="print"`, switched to `all` from `src/main.jsx` once loaded — not an inline `onload`, which the CSP forbids).
+- The terminal's hero photo (`bg-hero.*`, ~200 kB) is a CSS background gated on `html[data-hero]`, which `App.jsx` sets when docked, or a few seconds into the landing. A first visit therefore does not fetch it up front; do not put it back in an unconditional `body` rule or a preload.
 - `App.jsx` lazy-loads `FloatingLines` (raw WebGL2, ~15 kB raw / ~5 kB gzip) and `CustomCursor` behind `Suspense`; `isLowPower()` (viewport, coarse pointer, `hardwareConcurrency`) downgrades wave count, bend radius, parallax, and blend mode.
-- `vite.config.js` `manualChunks` isolates `react-vendor` and `@vercel` so nothing heavy blocks first paint. There is no `three` chunk any more — do not reintroduce a 3D framework for the background.
+- `vite.config.js` `manualChunks` isolates `react-vendor` and `@vercel` so nothing heavy blocks first paint. `vendor-three` exists again, but only behind the landing's dynamic import (see Orbit landing). The terminal's background stays raw WebGL2 — do not use `three` for it, and do not let `three` onto the critical path.
 - `OutputLine` in `Terminal.jsx` uses a custom `React.memo` comparator that permanently freezes already-finished lines.
 - `Terminal.jsx` disables the SVG turbulence rAF loop on Safari and pauses it while game/matrix overlays are open.
 - Cache headers and rewrites live in `vercel.json`. Static hashed assets are immutable-cached (1 yr), while `index.html`, `cv.html`, and `CV.pdf` (`public, max-age=0, must-revalidate`) ensure immediate freshness on redeploy without stale browser caching. `/CV.pdf` (and rewritten `/cv.pdf`) also sends `Content-Disposition: attachment; filename="Teo_Clerici_CV.pdf"` so direct visits trigger an automatic download.
@@ -140,9 +157,10 @@ Third-party iframes (`doom`, `map`) are sandboxed, and every `target="_blank"` l
 ## Layout notes
 
 - `src/data/cvData.js` (~740 lines) is the content store: CV sections, ASCII art variants (`asciiArtFull` / `asciiArt` / `asciiArtMobile`, chosen by viewport width) and easter-egg payloads; `src/data/randomArt.js` holds the `randomart` pool. CV facts come from the owner's knowledge base and dated CVs, not from this repo: work that was planned but not built must not be listed (a test guards the known cases).
+- `src/intro/` is the orbit landing (see Orbit landing). `introState.js` holds its pure, unit-tested decisions; keep DOM and `three` out of it.
 - `src/commands/` is the command registry (see Command pipeline). `cvData.js` and `eastereggs.commands.js` are past the usual size guidance by design — keep additions grouped with their neighbours rather than starting a parallel structure.
 - `src/utils/` holds the cross-cutting helpers: `escapeHtml` (+ `sanitizeAiHtml`), `htmlToText` (prompt formatting only, not a sanitiser), `calc`, `themes`, `sfx` (one shared `AudioContext` — never construct your own), `storage` (never-throwing storage access), `deviceTier`.
 - **Never write a ref during render** (`ref.current = value` in the component body). Use an effect, an event handler, or let a loop own the mirror; `react-hooks/refs` enforces this and the codebase is currently clean.
-- `AUDIT_AND_OPTIMIZATION.md` is the standing technical audit. Phases 1–3 are done; §4 (structural refactor) and §6 (features) are the open work.
+- `AUDIT_AND_OPTIMIZATION.md` is the standing technical audit (August 2026) with a dated addendum for the November 2026 audit and the orbit landing. Open work: the §4 feature-folder migration and the §6 ideas. The file contains a few NUL bytes, so `grep` treats it as binary: use `grep -a`.
 - `legacy/` is the pre-React vanilla HTML/CSS/JS version, kept for reference and not part of the build.
 - `portfolio.md` (an older AI-facing context doc) was deleted in favour of this file — every section it carried was either stale or already covered here. It is in git history if you need it; do not recreate a parallel context doc.

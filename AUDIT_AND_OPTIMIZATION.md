@@ -7,8 +7,11 @@
 >
 > **Phases 1–3 are implemented and verified** (commits `a45761f`..`d8fbec4`).
 > Every item below marked ✅ has been fixed on `main`, with browser verification
-> in a headless Chromium against the production build. Phase 4 (§4 structural
-> refactor and §6 features) has not been started.
+> in a headless Chromium against the production build. Phase 4 has since
+> shipped in part (command registry, static `/cv`, command chips, Cmd+K
+> palette, streaming `ask`); the feature-folder migration in §4 and the ideas
+> in §6 remain open. **A second audit on 2026-11-12 is appended at the end of
+> this file** — it found that production had been frozen for two months.
 >
 > **Two bugs were found during implementation that this audit missed**, both
 > pre-existing on `main` — see §2.B14. One of them broke four commands
@@ -1043,13 +1046,13 @@ The terminal is a fantastic *filter* for technical audiences and a *barrier* for
 15. §3.4: hoist the shader loop invariants
 16. §3.6: CSS fallback tier (skips the 123 kB `three` chunk on low-end devices)
 
-### Phase 4 — Structure & features *(~2-3 days)* — ⬜ NOT STARTED
+### Phase 4 — Structure & features *(~2-3 days)* — 🟡 MOSTLY DONE (see the 2026-11-12 addendum)
 
-17. §4: command registry refactor plus feature-folder migration
-18. §5.1: static `/cv` page
-19. Accessibility pass: buttons, live region, focus traps, dialog semantics
-20. Mobile command chips + Cmd+K palette
-21. Streaming `ask`
+17. §4: command registry refactor — ✅ (`src/commands/`); feature-folder migration — ⬜ open
+18. §5.1: static `/cv` page — ✅
+19. Accessibility pass: buttons, live region, focus traps, dialog semantics — ✅ buttons, `role="log"` live region, dialog semantics; focus traps not re-audited
+20. Mobile command chips + Cmd+K palette — ✅
+21. Streaming `ask` — ✅
 
 ### Phase 5 — Dependency removal *(~half a day)* — ✅ DONE
 
@@ -1060,8 +1063,8 @@ The terminal is a fantastic *filter* for technical audiences and a *barrier* for
 ## Appendix — Verification Commands
 
 ```bash
-npm run lint                              # currently 415 errors; 363 from committed .vite/
-npx eslint src api                        # source-only: 41 errors, 11 warnings
+npm run lint                              # 0 problems since Phase 1 (was 415 errors; 363 from committed .vite/)
+npm test                                  # Vitest, added 2026-11-12
 npm run build && npx vite-bundle-visualizer
 npx unlighthouse --site http://localhost:4173 --throttle
 
@@ -1073,3 +1076,83 @@ du -sh public/sounds        # 54M
 ```
 
 **Re-run after every phase.** The estimates in this document are analytical; only your device traces are authoritative.
+
+---
+
+# Addendum — Second audit, 2026-11-12
+
+**Audited:** 2026-11-12 · **Base commit:** `2eb54e0` (`origin/main`) · **Fixed in:** `42bc385` (branch `fix/deploy-and-cv-2026-11`) and the `feat/orbit-landing` branch
+
+## A.1 What was found
+
+The headline finding was not in the code. **teoclerici.com had served the
+28 August build for two and a half months.** Commits `e010d09` (16 Sep) and
+`2eb54e0` (29 Sep) were on `main`, and GitHub showed
+`Vercel: failure — Deployment failed` on both. Vercel compiles every `source`
+pattern in `vercel.json` with path-to-regexp v6 before it builds, and
+`"/(?:CV|cv)\\.pdf"` is invalid there (a top-level group may not start with
+`?`). A failed deployment leaves the previous one serving and sends nothing,
+so nobody noticed. Visitors, including anyone following the link on a CV, saw
+July content: an inflated job title, a superseded lead project and an old PDF.
+
+| # | Severity | Finding | Status |
+|---|---|---|---|
+| 1 | Critical | Invalid `vercel.json` header pattern blocked every deploy since 16 Sep | ✅ Fixed; `npm run check:vercel` compiles every pattern the way Vercel does and runs in `prebuild` |
+| 2 | High | CV content stale or wrong: work claimed that was never built (ISS satellite tracking, SGP4, ASCOM), no FloodFusion, July PDF | ✅ Rewritten from the 9 Nov CV; a test keeps the unbuilt claims out |
+| 3 | Medium | `?cmd=` ran any command on arrival: `ask …` fired a billed AI request with attacker-chosen text, `email` opened the mail client | ✅ Allow-list in `src/commands/deepLink.js` (CV commands, `help`, `tour`, `recruiter`) |
+| 4 | Medium | Prototype-key lookups: `theme constructor` painted and persisted an undefined theme, `open constructor` opened a junk URL | ✅ `Map`-based lookups (`src/utils/themes.js`, `OPEN_TARGETS`) |
+| 5 | Medium | `weather` had no timeout (a hung request locked the terminal), did not encode the city, and fell back to a third-party open proxy | ✅ `src/services/weatherService.js`: 8 s abort, `encodeURIComponent`, no proxy |
+| 6 | Medium | `Open linkedin` / `Theme green` failed: prefixes were stripped case-sensitively and phone keyboards capitalise | ✅ `keywordArg()`, plus `autoCapitalize="off"` on both inputs |
+| 7 | Medium | Input was `disabled` while typing: the "any key skips" branch was unreachable and focus was dropped on every command | ✅ Input stays enabled; keys are swallowed and skip the typewriter |
+| 8 | Medium | No Content-Security-Policy or Permissions-Policy on a site that renders through `innerHTML` | ✅ `script-src 'self'`; `calc` uses a parser instead of `new Function`; no inline handlers |
+| 9 | Low | DOOM and map iframes had no `sandbox` / `referrerpolicy`; map iframe had no `title` | ✅ |
+| 10 | Low | `gargantua.mp3` did not exist (four commands 404'd); three commands played their sound twice; `interstellarText` was dead | ✅ A test checks every referenced `.mp3` exists and plays once |
+| 11 | Low | 14 `target="_blank"` without `rel`, 4 `window.open` without `noopener` | ✅ Enforced by a test |
+| 12 | Low | ~160 dead lines, unused tracked assets, package still named `temp_react` | ✅ Dead code and `public/vite.svg` removed; `assets/3d/lens.glb` and `assets/original/` deliberately kept |
+| 13 | Low | The system prompt shipped ~10 kB of HTML markup with every `ask` | ✅ Plain text via `htmlToText()` |
+| 14 | Low | Open Graph image was the 1920×1280 hero declared as 1200×630; Twitter tags used `property=` | ✅ Dedicated `public/og-card.jpg`, real size checked by a test |
+| 15 | Low | `CLAUDE.md` described files that no longer existed; this document said Phase 4 had not started | ✅ |
+| 16 | Low | 16 dev-only `npm audit` advisories; none in production dependencies | ✅ `npm audit fix` (vite 7.3.x) |
+| 17 | Process | No test or check caught a two-month outage | ✅ Vitest suite and `check:vercel` in `prebuild`; deploy status must be checked after every push |
+| 18 | Medium | The typing state could be cleared by the wrong line: the welcome message's completion callback closed over a stale `history` and unlocked the terminal under a command that was still printing | ✅ `handleLineComplete(id)` with a stable identity (found while verifying the fixes above) |
+
+## A.2 The orbit front door
+
+The site's reach was limited by its own idea: a blank prompt asks a visitor to
+know what to type. The landing in `src/intro/` puts a conventional page in
+front of it (name, role, four buttons) and keeps the terminal as the thing you
+fly into.
+
+This reverses the August decision to remove Three.js, on purpose and within
+limits. Then it cost 123 kB gzipped on every visit to draw one triangle. Now
+it draws an actual scene, and only where that is affordable:
+
+| | Entry JS (gzip) | 3D chunk | WebGL contexts |
+|---|---|---|---|
+| Before (`42bc385`) | 40.7 kB | — | 1 (`FloatingLines`) |
+| After, phone / low tier | 42.3 kB | never requested | 0 on the landing, 1 once docked |
+| After, desktop / high tier | 42.3 kB | 132.8 kB three + 5.2 kB scene, requested after first contentful paint | 1 at any time |
+
+Other measured numbers: posters 27 kB (landscape AVIF) and 44 kB (portrait
+AVIF); Earth texture 343 kB WebP, desktop only; the terminal's 203 kB hero
+photo is no longer fetched until the landing has settled or the visitor docks.
+
+Verified in headless Chromium against the production build served with the
+`vercel.json` headers: zero CSP violations; canvas count never above one
+across five dock/undock cycles; `three` requested after first contentful
+paint on desktop and not at all with touch emulation at 390×844; reduced
+motion cuts instantly with no animation; `?cmd=` links and docked sessions
+skip the landing; layout checked at 320×568, 390×844, 768×1024, 844×390,
+1024×768, 1440×900 and 1920×1080.
+
+**Not verified:** frame rate on real GPUs (headless Chromium renders in
+software), Safari and Firefox, and Core Web Vitals in the field. Lighthouse
+was not run.
+
+## A.3 Still open
+
+- §4 feature-folder migration and the §6 ideas.
+- Film and TV sound clips and the embedded DOOM are third-party IP on a site
+  linked from job applications. Left in place; the owner's call.
+- Vercel's failed-deployment e-mail notifications should be switched on, and a
+  spend cap set in the xAI console (the rate limiter is per-instance only).
