@@ -37,17 +37,24 @@ import {
 } from '../data/cvData';
 import { runNamed } from './derived';
 
+/** `exit` / `quit`: leave the terminal and return to the orbit landing. */
+const undock = (ctx) => ({
+  outputContent: `<div>Undocking… returning to orbit.</div><br>`,
+  shouldAnimate: false,
+  specialAction: () => ctx.onUndock?.(),
+});
+
 export const eastereggCommands = [
   {
     name: "exit",
     category: "egg",
-    run: () => ({ outputContent: `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`, shouldAnimate: false }),
+    run: undock,
   },
   {
     name: "quit",
     aliasOf: "exit",
     category: "egg",
-    run: () => ({ outputContent: `<div>This is a browser. There's no escape. Try <span class="command-highlight" data-cmd="clear">clear</span> instead.</div><br>`, shouldAnimate: false }),
+    run: undock,
   },
   {
     name: "ls -la",

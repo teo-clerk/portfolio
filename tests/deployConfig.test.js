@@ -114,3 +114,33 @@ describe('published CV facts', () => {
     expect(person.subjectOf[0].name).toBe('FloodFusion');
   });
 });
+
+describe('social sharing card', () => {
+  const html = read('index.html');
+
+  // Unhashed images are cached as immutable for a year (vercel.json), so the
+  // card needs its own file name and must really be the size the tags claim.
+  it('points Open Graph and Twitter at the dedicated 1200x630 card', () => {
+    expect(html).toContain('<meta property="og:image" content="https://teoclerici.com/og-card.jpg" />');
+    expect(html).toContain('<meta name="twitter:image" content="https://teoclerici.com/og-card.jpg" />');
+    expect(html).not.toMatch(/(og|twitter):image" content="[^"]*bg-hero/);
+  });
+
+  it('ships a card whose pixel size matches the declared one', () => {
+    const jpeg = readFileSync(resolve(ROOT, 'public/og-card.jpg'));
+    // The frame header (SOF0 / SOF2) holds height then width as big-endian 16-bit.
+    let offset = 2;
+    let size = null;
+    while (offset < jpeg.length && size === null) {
+      const marker = jpeg[offset + 1];
+      const length = jpeg.readUInt16BE(offset + 2);
+      if (marker === 0xc0 || marker === 0xc2) {
+        size = { height: jpeg.readUInt16BE(offset + 5), width: jpeg.readUInt16BE(offset + 7) };
+      }
+      offset += 2 + length;
+    }
+    expect(size).toEqual({ width: 1200, height: 630 });
+    expect(html).toContain('<meta property="og:image:width" content="1200" />');
+    expect(html).toContain('<meta property="og:image:height" content="630" />');
+  });
+});

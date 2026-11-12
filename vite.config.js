@@ -28,8 +28,10 @@ export default defineConfig({
         },
       },
     },
-    // No chunk should get anywhere near this since Three.js was dropped
-    // (the background shader is raw WebGL2, ~5 kB gzip).
+    // The only chunk near this limit is `vendor-three` (~535 kB raw, ~133 kB
+    // gzip). It is reached solely through the dynamic import in
+    // src/intro/useOrbitScene.js, so it never blocks first paint and phones
+    // never request it. Anything else approaching the limit is a regression.
     chunkSizeWarningLimit: 600,
     // Inline small assets (< 8KB) as base64 data URIs to save HTTP requests
     assetsInlineLimit: 8192,

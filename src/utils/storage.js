@@ -24,6 +24,15 @@ export const writeStorage = (storage, key, value) => {
   }
 };
 
+export const removeStorage = (storage, key) => {
+  try {
+    window[storage]?.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const readNumber = (storage, key, fallback = 0) => {
   const parsed = parseInt(readStorage(storage, key, ''), 10);
   return Number.isFinite(parsed) ? parsed : fallback;

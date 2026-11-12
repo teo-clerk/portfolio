@@ -107,17 +107,25 @@
     to { transform: translate3d(0, -3%, 0) scale(1.06); }
 }
 
-body {
-    background-color: var(--bg-color);
-    /* Progressive image loading: AVIF (203KB) → WebP (384KB) → JPG (406KB) */
+/* The terminal's hero photo. Gated on an attribute App.jsx sets, so a first
+   visit (which opens on the orbit landing, with its own poster) does not
+   download a 200 kB image it cannot see. Until then the body shows the
+   blurred placeholder from the inline critical CSS in index.html.
+   The image-set() rule comes second so that browsers which understand it
+   prefer it; the others keep the plain WebP. */
+html[data-hero] body {
+    background-image: url('/bg-hero.webp');
+    /* AVIF (203KB) → WebP (384KB) → JPG (406KB) */
     background-image:
         image-set(
             url('/bg-hero.avif') type('image/avif'),
             url('/bg-hero.webp') type('image/webp'),
             url('/bg-hero.jpg')  type('image/jpeg')
         );
-    /* Fallback for browsers without image-set support */
-    background-image: url('/bg-hero.webp');
+}
+
+body {
+    background-color: var(--bg-color);
     background-size: cover;
     background-position: center;
     /* NOTE: background-attachment:fixed removed — it forces full-page
@@ -457,12 +465,6 @@ a:hover {
 
 .whoami-value {
     color: #ddd;
-}
-
-/* ── Boot sequence line fade-in ── */
-@keyframes bootLineFadeIn {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: none; }
 }
 
 .svg-filters {

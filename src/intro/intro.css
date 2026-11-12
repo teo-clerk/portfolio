@@ -1,0 +1,444 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Orbit landing (src/intro/Landing.jsx)
+
+   Layers, back to front: poster image → live canvas → scrim → content → the
+   hand-over fade. Two compositions, switched at the same 23/20 aspect ratio
+   the scene and the poster <source> elements use:
+     landscape — text on the left, workstation on the right
+     portrait  — workstation on top, text underneath
+   ───────────────────────────────────────────────────────────────────────── */
+
+.intro {
+    --intro-space: #04060c;
+    --intro-phosphor: #4df08a;
+    --intro-phosphor-ink: #03170c;
+    --intro-screen: #03110a;
+    --intro-text: #f2f5fa;
+    --intro-muted: #a9b4c6;
+    --intro-line: rgba(255, 255, 255, 0.22);
+    --intro-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow: hidden;
+    background: var(--intro-space);
+    color: var(--intro-text);
+}
+
+/* ── Backdrop ─────────────────────────────────────────────────────────── */
+
+.intro-backdrop {
+    position: absolute;
+    inset: 0;
+    transform-origin: center;
+}
+
+.intro[data-docking] .intro-backdrop {
+    /* Only the poster fly-in sets a transform; the live scene moves its camera. */
+    transition: transform 750ms cubic-bezier(0.6, 0, 0.9, 0.6);
+    will-change: transform;
+}
+
+.intro-poster,
+.intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.intro-poster {
+    object-fit: cover;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.intro-canvas {
+    opacity: 0;
+    transition: opacity 700ms ease;
+}
+
+.intro-canvas[data-live] {
+    opacity: 1;
+}
+
+/* ── Scrim: keeps the text readable over the Earth's bright limb ──────── */
+
+.intro-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(4, 6, 12, 0.9) 0%, rgba(4, 6, 12, 0.62) 30%, rgba(4, 6, 12, 0) 60%),
+        linear-gradient(0deg, rgba(4, 6, 12, 0.55) 0%, rgba(4, 6, 12, 0) 32%);
+    transition: opacity 400ms ease;
+}
+
+/* ── Content ──────────────────────────────────────────────────────────── */
+
+.intro-content {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: min(100%, 50rem);
+    padding: clamp(1.5rem, 5vh, 4rem) 1.5rem clamp(1.5rem, 5vh, 4rem) clamp(1.5rem, 6.5vw, 7rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    /* The canvas behind is clickable (the workstation docks); only the
+       controls themselves should take pointer events from it. */
+    pointer-events: none;
+    transition: opacity 320ms ease, transform 500ms var(--intro-ease);
+}
+
+.intro-content > * {
+    pointer-events: auto;
+}
+
+.intro-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    font-size: 0.78rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--intro-phosphor);
+}
+
+.intro-eyebrow::before {
+    content: '';
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0.9em currentColor;
+}
+
+.intro-name {
+    margin-top: 1.1rem;
+    font-size: clamp(2.6rem, 1.2rem + 5.2vw, 5.6rem);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+}
+
+.intro-role {
+    margin-top: 1.4rem;
+    max-width: 30em;
+    font-size: clamp(0.98rem, 0.9rem + 0.35vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--intro-muted);
+    text-wrap: pretty;
+}
+
+.intro-actions {
+    margin-top: 2.2rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, max-content));
+    gap: 0.75rem;
+}
+
+.intro-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.7rem 1.25rem;
+    border: 1px solid var(--intro-line);
+    border-radius: 3px;
+    background: rgba(8, 12, 22, 0.55);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    color: var(--intro-text);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease,
+        transform 160ms var(--intro-ease), box-shadow 160ms ease;
+}
+
+.intro-btn:hover {
+    border-color: var(--intro-phosphor);
+    color: var(--intro-phosphor);
+    transform: translateY(-2px);
+}
+
+.intro-btn:active {
+    transform: translateY(0);
+}
+
+.intro-btn--primary {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 56px;
+    padding: 0.85rem 1.7rem;
+    border-color: var(--intro-phosphor);
+    background: var(--intro-phosphor);
+    color: var(--intro-phosphor-ink);
+    font-size: 1.05rem;
+    box-shadow: 0 0 0 0 rgba(77, 240, 138, 0);
+}
+
+.intro-btn--primary::before {
+    content: '>_';
+    margin-right: 0.7em;
+    opacity: 0.7;
+}
+
+.intro-btn--primary:hover {
+    background: #7af7a8;
+    border-color: #7af7a8;
+    color: var(--intro-phosphor-ink);
+    box-shadow: 0 10px 34px -8px rgba(77, 240, 138, 0.55);
+}
+
+.intro-btn:focus-visible,
+.intro-link:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+
+.intro-featured {
+    margin-top: 2.2rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--intro-phosphor);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
+.intro-featured-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--intro-muted);
+}
+
+.intro-link {
+    padding: 0.2rem 0;
+    border: 0;
+    background: none;
+    color: var(--intro-text);
+    font: inherit;
+    font-size: 0.98rem;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: rgba(77, 240, 138, 0.6);
+    text-underline-offset: 0.3em;
+    cursor: pointer;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.intro-link:hover {
+    color: var(--intro-phosphor);
+    text-decoration-color: currentColor;
+}
+
+.intro-hint {
+    margin-top: 2.2rem;
+    max-width: 34em;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--intro-muted);
+}
+
+.intro-hint kbd {
+    padding: 0.1em 0.5em;
+    border: 1px solid var(--intro-line);
+    border-radius: 3px;
+    font: inherit;
+    color: var(--intro-text);
+}
+
+/* ── Docking ──────────────────────────────────────────────────────────── */
+
+.intro[data-docking] .intro-content {
+    opacity: 0;
+    transform: translateX(-24px);
+}
+
+.intro[data-docking] .intro-scrim {
+    opacity: 0;
+}
+
+/* Ends on the monitor's own colour, which is also the colour of the veil the
+   app shows while the terminal mounts, so the hand-over has no visible cut. */
+.intro-dock-fade {
+    position: absolute;
+    inset: 0;
+    background: var(--intro-screen);
+    opacity: 0;
+    pointer-events: none;
+    animation: introDockFade 320ms ease-in forwards;
+}
+
+@keyframes introDockFade {
+    to { opacity: 1; }
+}
+
+/* ── App-level veil between orbit and terminal (see App.jsx) ──────────── */
+
+.dock-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: #03110a;
+    pointer-events: none;
+}
+
+.dock-veil--in {
+    animation: dockVeilIn 300ms ease-in both;
+}
+
+.dock-veil--out {
+    animation: dockVeilOut 450ms ease-out both;
+}
+
+@keyframes dockVeilIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes dockVeilOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* ── Portrait: workstation on top, text underneath ────────────────────── */
+
+@media (max-aspect-ratio: 23/20) {
+    /* The workstation is at the top of the portrait poster: on squarer
+       screens crop the bottom (Earth, under the text anyway), never the top.
+       Landing.jsx passes the same anchor to computePosterZoom. */
+    .intro-poster {
+        object-position: center top;
+    }
+
+    /* The scrim is part of the content box here, so it is always exactly as
+       tall as the text it protects, whatever the screen height. */
+    .intro-scrim {
+        display: none;
+    }
+
+    .intro-content {
+        inset: auto 0 0 0;
+        width: 100%;
+        padding: 5rem clamp(1.1rem, 5vw, 2.5rem) max(1.5rem, env(safe-area-inset-bottom));
+        justify-content: flex-end;
+        background: linear-gradient(
+            0deg,
+            rgba(4, 6, 12, 0.97) 0%,
+            rgba(4, 6, 12, 0.9) calc(100% - 7rem),
+            rgba(4, 6, 12, 0) 100%
+        );
+    }
+
+    .intro-name {
+        margin-top: 0.7rem;
+        font-size: clamp(2.3rem, 1.4rem + 5.5vw, 4.2rem);
+    }
+
+    .intro-role {
+        margin-top: 0.8rem;
+    }
+
+    .intro-actions {
+        margin-top: 1.3rem;
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .intro-btn {
+        padding-inline: 0.6rem;
+        font-size: 0.86rem;
+    }
+
+    .intro-btn--primary {
+        justify-self: stretch;
+        font-size: 1rem;
+    }
+
+    /* Primary and the summary get a full row each; the two CV links share one. */
+    .intro-btn--wide {
+        grid-column: 1 / -1;
+    }
+
+    .intro-featured {
+        margin-top: 1.3rem;
+    }
+
+    .intro-link {
+        font-size: 0.9rem;
+    }
+
+    .intro[data-docking] .intro-content {
+        transform: translateY(24px);
+    }
+}
+
+/* Touch devices have no Enter key to press. */
+@media (pointer: coarse) {
+    .intro-hint {
+        display: none;
+    }
+}
+
+/* Short viewports: phones on their side, small phones, small laptop windows. */
+@media (max-height: 600px) {
+    .intro-hint,
+    .intro-eyebrow {
+        display: none;
+    }
+
+    .intro-name {
+        margin-top: 0;
+        font-size: clamp(1.9rem, 9vh, 3.2rem);
+    }
+
+    .intro-role {
+        max-width: 24em;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .intro-role,
+    .intro-actions,
+    .intro-featured {
+        margin-top: 0.8rem;
+    }
+
+    .intro-btn,
+    .intro-btn--primary {
+        min-height: 44px;
+        padding-block: 0.4rem;
+    }
+
+    /* Landscape only: the text column runs into the workstation, so the scrim
+       has to reach further across. */
+    .intro-scrim {
+        background: linear-gradient(90deg, rgba(4, 6, 12, 0.95) 0%, rgba(4, 6, 12, 0.82) 48%, rgba(4, 6, 12, 0) 82%);
+    }
+}
+
+/* Small phones held upright: the height-based name size above is meant for
+   landscape and would wrap the name here. */
+@media (max-height: 600px) and (max-aspect-ratio: 23/20) {
+    .intro-name {
+        font-size: 2rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .intro *,
+    .dock-veil {
+        animation: none !important;
+        transition: none !important;
+    }
+}

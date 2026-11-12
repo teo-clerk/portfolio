@@ -24,6 +24,7 @@ const makeCtx = (overrides = {}) => ({
   applyTheme: vi.fn((name) => getTheme(name) !== null),
   playSound: vi.fn(),
   toggleLoopingSound: vi.fn(() => true),
+  onUndock: vi.fn(),
   ...overrides,
 });
 
@@ -142,6 +143,20 @@ describe('calc', () => {
   it('reports an error for anything that is not arithmetic', () => {
     expect(run('calc alert(1)').result.outputContent).toContain('Error evaluating');
     expect(run('calc 1/0').result.outputContent).toContain('Error evaluating');
+  });
+});
+
+describe('exit', () => {
+  it.each(['exit', 'quit', 'Exit'])('%s leaves the terminal for the orbit landing', (input) => {
+    const { result, ctx } = run(input);
+    expect(result.outputContent).toContain('Undocking');
+    expect(ctx.onUndock).not.toHaveBeenCalled();
+    result.specialAction();
+    expect(ctx.onUndock).toHaveBeenCalledTimes(1);
+  });
+
+  it('cannot be triggered by a link', () => {
+    expect(resolveDeepLink('exit')).toBeNull();
   });
 });
 

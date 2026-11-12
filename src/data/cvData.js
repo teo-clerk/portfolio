@@ -107,7 +107,7 @@ Trilingual <strong>MIT-affiliated hackathon mentor</strong> and campus-club foun
 
 <span class="list-item"><strong>Interactive Terminal Portfolio</strong> — <a href="https://github.com/teo-clerk" target="_blank" rel="noopener noreferrer">github.com/teo-clerk</a>
    <br>&nbsp;&nbsp;• The very site you're exploring right now.
-   <br>&nbsp;&nbsp;• Built with <strong>React 19</strong> and hand-written <strong>WebGL2 GLSL shaders</strong> (no 3D framework), glassmorphism UI.
+   <br>&nbsp;&nbsp;• Built with <strong>React 19</strong>: a <strong>Three.js</strong> orbit scene as the front door (lazy-loaded, desktop only), hand-written <strong>WebGL2 GLSL shaders</strong> behind the terminal, glassmorphism UI.
    <br>&nbsp;&nbsp;• Features: streaming AI assistant, typewriter animations, mini-games, hidden easter eggs, theme switching.</span>
 
 <span class="list-item"><strong>H-Altura Club</strong> (Founder &amp; Coordinator) @ H-FARM Campus (2025 – Present) — <a href="https://www.instagram.com/haltura.club/" target="_blank" rel="noopener noreferrer">@haltura.club</a>

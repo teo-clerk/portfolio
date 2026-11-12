@@ -66,7 +66,16 @@ const applyTheme = (name) => {
     return true;
 };
 
-export const useTerminal = () => {
+/**
+ * @param {{
+ *   initialCommand?: string | null,
+ *   onUndock?: () => void,
+ * }} [options]
+ *   `initialCommand` runs once the welcome message has finished: a `?cmd=`
+ *   deep link, or the shortcut chosen on the orbit landing. `onUndock` is what
+ *   `exit` calls to leave the terminal for the landing.
+ */
+export const useTerminal = ({ initialCommand = null, onUndock } = {}) => {
     const [history, setHistory] = useState([]);
     const [inputVal, setInputVal] = useState('');
     const [commandHistory, setCommandHistory] = useState([]);
@@ -75,10 +84,21 @@ export const useTerminal = () => {
     const [showMatrix, setShowMatrix] = useState(false);
     const [showDoom, setShowDoom] = useState(false);
     const [showSnake, setShowSnake] = useState(false);
-    const [showBoot, setShowBoot] = useState(true);
     const [isTyping, setIsTyping] = useState(false);
     const [globalVolume, setGlobalVolume] = useState(0.75);
-    const [tourQueue, setTourQueue] = useState([]);
+    // Commands waiting to run one after another: the `tour`, and the command
+    // to run on arrival (a `?cmd=recruiter` deep link, or the shortcut picked
+    // on the orbit landing; App.jsx decides which). Going through this queue
+    // rather than calling runCommand directly means the arrival command waits
+    // for the welcome typewriter instead of racing it.
+    //
+    // A link is written by someone other than the visitor, so the command is
+    // untrusted: resolveDeepLink only lets through commands that print CV
+    // content (plus help/tour/recruiter). Anything else is ignored.
+    const [tourQueue, setTourQueue] = useState(() => {
+        const arrivalCommand = resolveDeepLink(initialCommand);
+        return arrivalCommand ? [arrivalCommand] : [];
+    });
     
     const inputRef = useRef(null);
     const terminalBodyRef = useRef(null);
@@ -132,10 +152,6 @@ export const useTerminal = () => {
     };
 
     useEffect(() => {
-        if (readStorage('sessionStorage', 'booted') === 'true') {
-            setShowBoot(false);
-        }
-
         // Rehydrate the last chosen theme. Runs after first paint, so an
         // unsupported/blocked storage read simply leaves the CSS default in
         // place rather than throwing.
@@ -143,22 +159,6 @@ export const useTerminal = () => {
         const storedThemeColors = getTheme(storedTheme);
         if (storedThemeColors) {
             paintTheme(storedTheme, storedThemeColors);
-        }
-
-        // Deep link: `?cmd=recruiter` runs a command on arrival. BootSequence
-        // already skips its animation when `cmd` is present, so the terminal is
-        // interactive by the time this lands. Dispatch goes through the tour
-        // queue rather than runCommand directly — that effect already waits for
-        // the welcome typewriter to finish instead of racing it.
-        //
-        // A link is written by someone other than the visitor, so the command
-        // is untrusted: resolveDeepLink only lets through commands that print
-        // CV content (plus help/tour/recruiter). Anything else is ignored.
-        try {
-            const deepLink = resolveDeepLink(new URLSearchParams(window.location.search).get('cmd'));
-            if (deepLink) setTourQueue([deepLink]);
-        } catch {
-            /* URL unavailable — no deep link to honour */
         }
 
         const art = getAsciiArt();
@@ -264,7 +264,7 @@ export const useTerminal = () => {
             cmd: trimmedCmd, newHistory, history, 
             setHistory, setInputVal, setShowGame, setShowMatrix, setShowDoom, setShowSnake, applyTheme,
             globalVolume, setGlobalVolume, playSound, toggleLoopingSound, setIsTyping,
-            commandHistory, setCommandHistory, setHistoryIndex, setTourQueue
+            commandHistory, setCommandHistory, setHistoryIndex, setTourQueue, onUndock
         };
 
         // Exact match, then pattern match. CV content commands are ordinary
@@ -389,7 +389,5 @@ export const useTerminal = () => {
         setShowDoom,
         showSnake,
         setShowSnake,
-        showBoot,
-        setShowBoot,
     };
 };

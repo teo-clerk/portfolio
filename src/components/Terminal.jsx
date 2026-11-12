@@ -7,7 +7,6 @@ import { useLatestRef } from '../hooks/useLatestRef';
 import { readStorage, writeStorage } from '../utils/storage';
 import { PongGame } from './PongGame';
 import SnakeGame from './SnakeGame';
-import BootSequence from './BootSequence';
 import MatrixRain from './MatrixRain';
 import CommandPalette from './CommandPalette';
 import CommandChips from './CommandChips';
@@ -126,7 +125,7 @@ const DoomOverlay = ({ onExit }) => {
   );
 };
 
-const Terminal = ({ onOverlayChange }) => {
+const Terminal = ({ onOverlayChange, initialCommand = null, onUndock }) => {
   const {
     history,
     inputVal,
@@ -145,9 +144,7 @@ const Terminal = ({ onOverlayChange }) => {
     setShowDoom,
     showSnake,
     setShowSnake,
-    showBoot,
-    setShowBoot,
-  } = useTerminal();
+  } = useTerminal({ initialCommand, onUndock });
 
   const turbulenceRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -242,11 +239,11 @@ const Terminal = ({ onOverlayChange }) => {
   // hint being missed.
   useEffect(() => {
     if (readStorage('localStorage', HINT_SEEN_KEY) === 'true') return;
-    if (inputVal || isTyping || showBoot || overlayActive) return;
+    if (inputVal || isTyping || overlayActive) return;
 
     const timer = setTimeout(() => setIdleHint(true), IDLE_HINT_MS);
     return () => clearTimeout(timer);
-  }, [inputVal, isTyping, showBoot, overlayActive]);
+  }, [inputVal, isTyping, overlayActive]);
 
   // Any keystroke means they found their way in — retire the hint for good.
   useEffect(() => {
@@ -327,16 +324,6 @@ const Terminal = ({ onOverlayChange }) => {
     activateTarget(e.target);
   };
 
-  const handleBootComplete = useCallback(() => {
-    try {
-      sessionStorage.setItem('booted', 'true');
-    } catch {
-      /* storage blocked (private mode / embedded webview) — non-fatal */
-    }
-    setShowBoot(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
-  }, [setShowBoot, inputRef]);
-
   // Stable identity: MatrixRain's effect depends on this, and an inline arrow
   // would tear down and restart the whole rain on every Terminal render.
   const handleMatrixExit = useCallback(() => {
@@ -361,9 +348,6 @@ const Terminal = ({ onOverlayChange }) => {
 
   return (
     <>
-      {/* Boot sequence — only plays once per session */}
-      {showBoot && <BootSequence onComplete={handleBootComplete} />}
-
       {/* Matrix rain overlay */}
       {showMatrix && <MatrixRain onExit={handleMatrixExit} />}
 
@@ -456,7 +440,7 @@ const Terminal = ({ onOverlayChange }) => {
                 autoCorrect="off"
                 enterKeyHint="go"
                 spellCheck="false"
-                autoFocus={!showBoot}
+                autoFocus
               />
             </div>
           </div>

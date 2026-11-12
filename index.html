@@ -16,11 +16,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- ═══ PERFORMANCE: Preload hero background (LCP element) ═══ -->
-    <!-- AVIF for modern browsers (Chrome 85+, Firefox 93+, Safari 16+) -->
-    <link rel="preload" as="image" type="image/avif" href="/bg-hero.avif" fetchpriority="high" />
-    <!-- WebP fallback preload for slightly older browsers -->
-    <link rel="preload" as="image" type="image/webp" href="/bg-hero.webp" />
+    <!-- ═══ PERFORMANCE: Preload the orbit landing's poster ═══ -->
+    <!-- A first visit opens on the landing (src/intro), and this still image is
+         its largest paint. One per composition; the media queries mirror the
+         <picture> sources in Landing.jsx (23/20 split). Vite rewrites the
+         paths to the hashed files. The terminal's own hero photo is no longer
+         preloaded: index.css fetches it only once it is about to be seen. -->
+    <link rel="preload" as="image" type="image/avif" href="/src/intro/assets/orbit-poster-landscape.avif" media="(min-aspect-ratio: 23/20)" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/avif" href="/src/intro/assets/orbit-poster-portrait.avif" media="(max-aspect-ratio: 23/20)" fetchpriority="high" />
 
     <!-- ═══ PERFORMANCE: Load Fira Code font with swap strategy ═══ -->
     <!-- Only load weight 400+700 to minimize download. display=swap ensures text is visible immediately with fallback font -->
@@ -83,7 +86,7 @@
       "jobTitle": "AI & Data Science Student",
       "email": "mailto:clerici.teo5@gmail.com",
       "url": "https://teoclerici.com",
-      "image": "https://teoclerici.com/bg-hero.jpg",
+      "image": "https://teoclerici.com/og-card.jpg",
       "knowsLanguage": [
         "es",
         "it",
@@ -206,7 +209,7 @@
         {
           "@type": "SoftwareSourceCode",
           "name": "Interactive Terminal Portfolio",
-          "description": "This site: a terminal-emulator portfolio driven entirely by typed commands, with hand-written WebGL2 GLSL shaders, a streaming AI assistant, a glassmorphic UI, and hidden easter eggs.",
+          "description": "This site: a terminal-emulator portfolio driven by typed commands, entered through a Three.js scene of a retro computer in orbit, with hand-written WebGL2 GLSL shaders, a streaming AI assistant, a glassmorphic UI, and hidden easter eggs.",
           "url": "https://teoclerici.com",
           "codeRepository": "https://github.com/teo-clerk",
           "programmingLanguage": "JavaScript",
@@ -235,10 +238,10 @@
     <meta property="og:url" content="https://teoclerici.com/" />
     <meta property="og:title" content="Teo Clerici Jurado | AI & Data Science Student" />
     <meta property="og:description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science undergraduate (year 2 of 3) at H-FARM College (University of Chichester). Builder of FloodFusion (flood maps from Sentinel-1 radar), MDlearn, SciNet and LaCasitaOS; Educational Mentor with the MIT Edgerton Center; building AI for Earth observation." />
-    <meta property="og:image" content="https://teoclerici.com/bg-hero.jpg" />
+    <meta property="og:image" content="https://teoclerici.com/og-card.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Teo Clerici Jurado — AI & Data Science portfolio terminal" />
+    <meta property="og:image:alt" content="Teo Clerici: a retro computer terminal in orbit above the Earth" />
     <meta property="og:site_name" content="Teo Clerici Jurado" />
     <meta property="og:locale" content="en_US" />
 
@@ -247,8 +250,8 @@
     <meta name="twitter:url" content="https://teoclerici.com/" />
     <meta name="twitter:title" content="Teo Clerici Jurado | AI & Data Science Student" />
     <meta name="twitter:description" content="Official portfolio of Teo Clerici Jurado — AI & Data Science undergraduate building AI for Earth observation: FloodFusion, MDlearn, SciNet and LaCasitaOS." />
-    <meta name="twitter:image" content="https://teoclerici.com/bg-hero.jpg" />
-    <meta name="twitter:image:alt" content="Teo Clerici Jurado — AI & Data Science portfolio terminal" />
+    <meta name="twitter:image" content="https://teoclerici.com/og-card.jpg" />
+    <meta name="twitter:image:alt" content="Teo Clerici: a retro computer terminal in orbit above the Earth" />
   </head>
   <body>
     <div id="root"></div>

@@ -87,7 +87,7 @@ const page = `<!doctype html>
     <meta property="og:type" content="profile" />
     <meta property="og:url" content="${SITE}/cv" />
     <meta property="og:title" content="Teo Clerici Jurado — CV" />
-    <meta property="og:image" content="${SITE}/bg-hero.jpg" />
+    <meta property="og:image" content="${SITE}/og-card.jpg" />
     <style>
       :root {
         color-scheme: dark light;
