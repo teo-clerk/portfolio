@@ -20,8 +20,11 @@ export const getDeviceTier = () => {
   // Honour the user's stated preference before any hardware heuristic.
   if (mq('(prefers-reduced-motion: reduce)')) return 'none';
 
-  // Save-Data is an explicit "don't spend my bandwidth" signal.
+  // Save-Data is an explicit "don't spend my bandwidth" signal, and on a slow
+  // connection the extra downloads would arrive long after they could help.
   if (navigator.connection?.saveData) return 'none';
+  const connection = navigator.connection?.effectiveType;
+  if (connection === 'slow-2g' || connection === '2g' || connection === '3g') return 'none';
 
   const memory = navigator.deviceMemory ?? 4;
   const cores = navigator.hardwareConcurrency ?? 4;

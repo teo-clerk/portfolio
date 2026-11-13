@@ -20,6 +20,8 @@ export const PORTRAIT_MAX_ASPECT = 23 / 20;
 /** Length of the live scene's fly-in, and of the poster's zoom that stands in for it. */
 export const SCENE_DOCK_MS = 1700;
 export const POSTER_DOCK_MS = 750;
+/** The fly-in from the solar-system map is longer: it starts thousands of units out. */
+export const MAP_DOCK_MS = 2800;
 
 /**
  * Should the landing be shown, or should the visitor go straight to the
@@ -44,26 +46,6 @@ export const shouldShowIntro = ({ search = '', docked = false } = {}) => {
   } catch {
     return true;
   }
-};
-
-/**
- * How the landing's backdrop is rendered for a device tier (see
- * utils/deviceTier.js):
- *
- *   'scene'  — live Three.js scene, cross-faded in over the poster
- *   'poster' — the still image only; no WebGL, and the three chunk is never
- *              requested (phones, tablets, modest laptops)
- *   'static' — the still image with no animation at all, and an instant cut
- *              to the terminal (reduced motion, Save-Data, very low-end
- *              hardware)
- *
- * @param {'none' | 'low' | 'high'} tier
- * @returns {'scene' | 'poster' | 'static'}
- */
-export const getIntroMode = (tier) => {
-  if (tier === 'high') return 'scene';
-  if (tier === 'low') return 'poster';
-  return 'static';
 };
 
 /** Longest side the zoomed poster may reach, as a multiple of the viewport. */

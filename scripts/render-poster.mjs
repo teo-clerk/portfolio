@@ -33,9 +33,13 @@ const ASSETS = join(ROOT, 'src/intro/assets');
 const CHROMIUM_PATH = process.env.CHROMIUM_PATH ?? '/usr/bin/chromium';
 const PLAYWRIGHT_FROM = process.env.PLAYWRIGHT_FROM ?? join(ROOT, 'package.json');
 
+/**
+ * Each poster is rendered on the quality rung the devices that see it start
+ * on: landscape for desktops (with the glow pass), portrait for phones.
+ */
 const POSTERS = [
-  { name: 'landscape', width: 1600, height: 900 },
-  { name: 'portrait', width: 900, height: 1800 },
+  { name: 'landscape', width: 1600, height: 900, quality: 'high' },
+  { name: 'portrait', width: 900, height: 1800, quality: 'lite' },
 ];
 const OG_CARD = { width: 1200, height: 630 };
 
@@ -55,7 +59,7 @@ const blankPagePlugin = () => ({
 });
 
 /** Runs in the browser: render one frozen frame and report where the screen is. */
-const renderFrame = async ({ width, height, card }) => {
+const renderFrame = async ({ width, height, quality, card }) => {
   await Promise.all([document.fonts.load('15px "Fira Code"'), document.fonts.load('bold 40px "Fira Code"')]);
   const { createOrbitScene } = await import('/src/intro/orbitScene.js');
 
@@ -64,7 +68,7 @@ const renderFrame = async ({ width, height, card }) => {
   document.body.replaceChildren(canvas);
 
   const scene = await new Promise((done) => {
-    const created = createOrbitScene(canvas, { onReady: () => done(created) });
+    const created = createOrbitScene(canvas, { quality, onReady: () => done(created) });
   });
   scene.freeze();
   // Read back in the same task as the render: the drawing buffer is still valid.
@@ -133,10 +137,10 @@ const main = async () => {
 
   try {
     const meta = {};
-    for (const { name, width, height } of POSTERS) {
+    for (const { name, width, height, quality } of POSTERS) {
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
       await page.goto(`${origin}/__poster`);
-      const { screen, dataUrl } = await page.evaluate(renderFrame, { width, height });
+      const { screen, dataUrl } = await page.evaluate(renderFrame, { width, height, quality });
       await page.close();
 
       const png = join(work, `${name}.png`);
@@ -152,6 +156,7 @@ const main = async () => {
     await page.goto(`${origin}/__poster`);
     const { dataUrl } = await page.evaluate(renderFrame, {
       ...OG_CARD,
+      quality: 'high',
       card: {
         eyebrow: 'Interactive portfolio',
         title: 'Teo Clerici',

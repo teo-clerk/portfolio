@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { shouldShowIntro, getIntroMode, computePosterZoom, DOCKED_SESSION_KEY } from '../src/intro/introState.js';
+import { shouldShowIntro, computePosterZoom, DOCKED_SESSION_KEY } from '../src/intro/introState.js';
 import { resolveDeepLink } from '../src/commands/deepLink.js';
 
 describe('shouldShowIntro', () => {
@@ -27,21 +27,6 @@ describe('shouldShowIntro', () => {
 
   it('keeps the session key the previous boot animation used', () => {
     expect(DOCKED_SESSION_KEY).toBe('booted');
-  });
-});
-
-describe('getIntroMode', () => {
-  it('uses the live 3D scene only on capable desktops', () => {
-    expect(getIntroMode('high')).toBe('scene');
-  });
-
-  it('uses the still poster on phones and modest hardware', () => {
-    expect(getIntroMode('low')).toBe('poster');
-  });
-
-  it('uses the CSS-only landing for reduced motion and Save-Data', () => {
-    expect(getIntroMode('none')).toBe('static');
-    expect(getIntroMode(undefined)).toBe('static');
   });
 });
 
@@ -132,14 +117,24 @@ describe('the 3D scene stays in its lazy chunk', () => {
   const sources = walk(SRC).map((path) => ({ file: relative(ROOT, path), code: readFileSync(path, 'utf8') }));
 
   // three is ~133 kB gzipped. It is affordable only because nothing on the
-  // critical path can reach it: one module imports it, and that module is
-  // only ever loaded with a dynamic import().
-  it('imports three from src/intro/orbitScene.js and nowhere else', () => {
+  // critical path can reach it: only the scene's own modules import it, and
+  // the scene is only ever loaded with a dynamic import().
+  const SCENE_FILES = (file) => file === 'src/intro/orbitScene.js' || file.startsWith('src/intro/scene/');
+  const staticImportsOf = (code) => [...code.matchAll(/^\s*import\s[^;]*?from\s+['"]([^'"]+)['"]/gm)].map((match) => match[1]);
+
+  it('imports three only from the scene modules', () => {
     const importers = sources.filter(({ code }) => /from\s+['"]three(\/[^'"]*)?['"]/.test(code)).map(({ file }) => file);
-    expect(importers).toEqual(['src/intro/orbitScene.js']);
+    expect(importers.length).toBeGreaterThan(0);
+    expect(importers.filter((file) => !SCENE_FILES(file))).toEqual([]);
   });
 
-  it('never imports the scene module statically', () => {
+  it('never imports the scene modules statically from outside them', () => {
+    const leaks = sources
+      .filter(({ file }) => !SCENE_FILES(file))
+      .filter(({ code }) => staticImportsOf(code).some((path) => /(^|\/)(orbitScene|scene\/[^/]+)(\.js)?$/.test(path)))
+      .map(({ file }) => file);
+    expect(leaks).toEqual([]);
+
     const staticImporters = sources
       .filter(({ code }) => /^\s*import\s[^;]*from\s+['"][^'"]*orbitScene(\.js)?['"]/m.test(code))
       .map(({ file }) => file);
@@ -149,6 +144,23 @@ describe('the 3D scene stays in its lazy chunk', () => {
       .filter(({ code }) => /import\(\s*['"][^'"]*orbitScene(\.js)?['"]\s*\)/.test(code))
       .map(({ file }) => file);
     expect(dynamicImporters).toEqual(['src/intro/useOrbitScene.js']);
+  });
+
+  it('loads the glow pass only on demand, from the scene', () => {
+    const postfxImporters = sources.filter(({ code }) => /postfx/.test(code) && /import\(/.test(code)).map(({ file }) => file);
+    expect(postfxImporters).toEqual(['src/intro/orbitScene.js']);
+    const staticPostfx = sources.filter(({ code }) => staticImportsOf(code).some((path) => /postfx/.test(path))).map(({ file }) => file);
+    expect(staticPostfx).toEqual([]);
+  });
+
+  // What the landing downloads before the visitor does anything: the day map
+  // for the quality rung, the night lights and the Moon.
+  it('keeps the home view textures within budget', () => {
+    const size = (name) => statSync(join(SRC, `intro/assets/${name}`)).size;
+    const desktop = size('earth.webp') + size('earth-night.webp') + size('moon.webp');
+    const phones = size('earth-2k.webp') + size('earth-night-1k.webp') + size('moon.webp');
+    expect(desktop).toBeLessThan(500_000);
+    expect(phones).toBeLessThan(150_000);
   });
 
   it('keeps the poster metadata in step with the rendered posters', async () => {

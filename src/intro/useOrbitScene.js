@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLatestRef } from '../hooks/useLatestRef';
+import { writeStorage } from '../utils/storage';
+import { SCENE_FALLBACK_KEY } from './scenePolicy';
 
 /** Once the page has painted, wait at most this long for an idle moment. */
 const IDLE_TIMEOUT_MS = 1200;
@@ -63,13 +65,16 @@ const monitorFontReady = () => {
   return Promise.race([Promise.all([load('15px "Fira Code"'), load('bold 15px "Fira Code"')]), timeout]);
 };
 
+const resolved = () => Promise.resolve();
+
 /**
  * Owns the live Three.js scene behind the landing.
  *
  * The scene module (and `three` with it) is fetched with a dynamic import after
- * the first paint, and only when `isEnabled` is true, so phones and reduced-
- * motion visitors never download it. If the chunk or WebGL fails, `isLive`
- * stays false and the landing keeps showing the poster.
+ * the first paint, and only when `isEnabled` is true, so reduced-motion and
+ * Save-Data visitors never download it. If the chunk or WebGL fails, or the
+ * device cannot keep up, `isLive` goes (or stays) false and the landing keeps
+ * showing the poster.
  *
  * Same contract as FloatingLines: the context is created once per mount in an
  * effect with stable dependencies, and released on unmount.
@@ -77,19 +82,40 @@ const monitorFontReady = () => {
  * @param {{
  *   canvasRef: { current: HTMLCanvasElement | null },
  *   isEnabled: boolean,
- *   onActivate: () => void,
- * }} options `onActivate` fires when the visitor clicks the workstation.
- * @returns {{ isLive: boolean, dock: () => Promise<void> | null, cancel: () => void }}
+ *   quality: 'high' | 'lite',
+ *   onActivate: (target: 'workstation' | 'satellite') => void,
+ *   onStopSelect: (id: string) => void,
+ * }} options `onActivate` fires when the visitor clicks the workstation or the
+ *   satellite; `onStopSelect` when they click a planet in the map.
+ * @returns {{
+ *   isLive: boolean,
+ *   dock: () => Promise<void> | null,
+ *   getDockMs: () => number | null,
+ *   enterMap: () => Promise<void>,
+ *   exitMap: () => Promise<void>,
+ *   focusStop: (id: string | null) => Promise<void>,
+ *   setLabelListener: (listener: Function | null) => void,
+ *   cancel: () => void,
+ * }}
  *   `dock()` starts the fly-in and resolves when it ends; null when the scene
  *   is not running. `cancel()` gives the scene up for good (the visitor docked
  *   on the poster before it was ready), so no context is created just to be
  *   torn down a moment later.
  */
-export const useOrbitScene = ({ canvasRef, isEnabled, onActivate }) => {
+export const useOrbitScene = ({ canvasRef, isEnabled, quality, onActivate, onStopSelect }) => {
   const [isLive, setIsLive] = useState(false);
   const sceneRef = useRef(null);
   const isAbandonedRef = useRef(false);
+  const qualityRef = useLatestRef(quality);
   const onActivateRef = useLatestRef(onActivate);
+  const onStopSelectRef = useLatestRef(onStopSelect);
+
+  const abandon = useCallback(() => {
+    isAbandonedRef.current = true;
+    sceneRef.current?.dispose();
+    sceneRef.current = null;
+    setIsLive(false);
+  }, []);
 
   useEffect(() => {
     if (!isEnabled) return undefined;
@@ -103,10 +129,18 @@ export const useOrbitScene = ({ canvasRef, isEnabled, onActivate }) => {
         if (cancelled || isAbandonedRef.current || !canvas) return;
 
         sceneRef.current = createOrbitScene(canvas, {
+          quality: qualityRef.current,
           onReady: () => {
             if (!cancelled && !isAbandonedRef.current) setIsLive(true);
           },
-          onActivate: () => onActivateRef.current?.(),
+          onActivate: (target) => onActivateRef.current?.(target),
+          onStopSelect: (id) => onStopSelectRef.current?.(id),
+          onGiveUp: () => {
+            // Remember for this tab, so a reload goes straight to the still image.
+            writeStorage('sessionStorage', SCENE_FALLBACK_KEY, 'true');
+            console.warn('Orbit scene too slow on this device, keeping the still image.');
+            abandon();
+          },
         });
       } catch (error) {
         // No WebGL, a blocked chunk, a lost network: the poster is the landing.
@@ -122,15 +156,14 @@ export const useOrbitScene = ({ canvasRef, isEnabled, onActivate }) => {
       sceneRef.current?.dispose();
       sceneRef.current = null;
     };
-  }, [isEnabled, canvasRef, onActivateRef]);
+  }, [isEnabled, canvasRef, qualityRef, onActivateRef, onStopSelectRef, abandon]);
 
   const dock = useCallback(() => sceneRef.current?.dock() ?? null, []);
+  const getDockMs = useCallback(() => sceneRef.current?.getDockMs() ?? null, []);
+  const enterMap = useCallback(() => sceneRef.current?.enterMap() ?? resolved(), []);
+  const exitMap = useCallback(() => sceneRef.current?.exitMap() ?? resolved(), []);
+  const focusStop = useCallback((id) => sceneRef.current?.focusStop(id) ?? resolved(), []);
+  const setLabelListener = useCallback((listener) => sceneRef.current?.setLabelListener(listener), []);
 
-  const cancel = useCallback(() => {
-    isAbandonedRef.current = true;
-    sceneRef.current?.dispose();
-    sceneRef.current = null;
-  }, []);
-
-  return { isLive, dock, cancel };
+  return { isLive, dock, getDockMs, enterMap, exitMap, focusStop, setLabelListener, cancel: abandon };
 };

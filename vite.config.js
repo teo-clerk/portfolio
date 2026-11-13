@@ -20,6 +20,9 @@ export default defineConfig({
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react-vendor';
           // Vercel analytics/speed-insights — non-critical, isolated chunk
           if (id.includes('@vercel')) return 'vercel-analytics';
+          // The glow pass's addons ride with the lazily imported postfx chunk,
+          // not vendor-three: phones load vendor-three, but never the glow.
+          if (id.includes('node_modules/three/examples/jsm/postprocessing') || id.includes('node_modules/three/examples/jsm/shaders')) return undefined;
           // Everything else in node_modules split by package name
           if (id.includes('node_modules')) {
             const pkg = id.toString().split('node_modules/')[1].split('/')[0];
@@ -30,8 +33,9 @@ export default defineConfig({
     },
     // The only chunk near this limit is `vendor-three` (~535 kB raw, ~133 kB
     // gzip). It is reached solely through the dynamic import in
-    // src/intro/useOrbitScene.js, so it never blocks first paint and phones
-    // never request it. Anything else approaching the limit is a regression.
+    // src/intro/useOrbitScene.js after first paint, so it never blocks the
+    // landing, and reduced-motion / Save-Data visitors never request it.
+    // Anything else approaching the limit is a regression.
     chunkSizeWarningLimit: 600,
     // Inline small assets (< 8KB) as base64 data URIs to save HTTP requests
     assetsInlineLimit: 8192,

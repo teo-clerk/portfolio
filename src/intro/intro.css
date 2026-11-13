@@ -58,6 +58,8 @@
 .intro-canvas {
     opacity: 0;
     transition: opacity 700ms ease;
+    /* Drags turn the camera; the landing never scrolls, so nothing is lost. */
+    touch-action: none;
 }
 
 .intro-canvas[data-live] {
@@ -240,6 +242,95 @@
     text-decoration-color: currentColor;
 }
 
+/* ── Explore the solar system ─────────────────────────────────────────── */
+
+.intro-explore {
+    margin-top: 1.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.95rem;
+    min-height: 48px;
+    padding: 0.45rem 1.1rem 0.45rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: var(--intro-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 200ms ease, background-color 200ms ease, opacity 600ms ease;
+}
+
+/* Reserved space until the live scene is up, then it fades in. */
+.intro-explore:not([data-ready]) {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.intro-explore:hover {
+    border-color: var(--intro-line);
+    background: rgba(8, 12, 22, 0.55);
+}
+
+.intro-explore:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+
+/* A planet with a moon on its orbit, drawn in CSS. */
+.intro-explore-orbit {
+    position: relative;
+    flex: none;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid rgba(77, 240, 138, 0.45);
+    border-radius: 50%;
+    transform: rotateX(62deg) rotateZ(-18deg);
+}
+
+.intro-explore-orbit::before {
+    content: '';
+    position: absolute;
+    inset: 32%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd99a, #e2531d 70%);
+    box-shadow: 0 0 12px rgba(255, 170, 80, 0.7);
+}
+
+.intro-explore-orbit::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--intro-phosphor);
+    box-shadow: 0 0 8px var(--intro-phosphor);
+    transform-origin: 3px calc(1.2rem + 3px);
+    animation: introOrbit 6s linear infinite;
+}
+
+@keyframes introOrbit {
+    to { transform: rotate(360deg); }
+}
+
+.intro-explore-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.intro-explore-text strong {
+    font-size: 0.95rem;
+}
+
+.intro-explore-text span {
+    font-size: 0.76rem;
+    color: var(--intro-muted);
+}
+
 .intro-hint {
     margin-top: 2.2rem;
     max-width: 34em;
@@ -256,14 +347,24 @@
     color: var(--intro-text);
 }
 
-/* ── Docking ──────────────────────────────────────────────────────────── */
+/* ── Docking, and flying out to the map ───────────────────────────────── */
 
-.intro[data-docking] .intro-content {
+.intro[data-docking] .intro-content,
+.intro[data-view='map'] .intro-content {
     opacity: 0;
     transform: translateX(-24px);
 }
 
-.intro[data-docking] .intro-scrim {
+.intro[data-view='map'] .intro-content {
+    pointer-events: none;
+}
+
+.intro[data-view='map'] .intro-content > * {
+    pointer-events: none;
+}
+
+.intro[data-docking] .intro-scrim,
+.intro[data-view='map'] .intro-scrim {
     opacity: 0;
 }
 
@@ -374,11 +475,20 @@
         margin-top: 1.3rem;
     }
 
+    .intro-explore {
+        margin-top: 0.9rem;
+    }
+
+    .intro-explore-text span {
+        display: none;
+    }
+
     .intro-link {
         font-size: 0.9rem;
     }
 
-    .intro[data-docking] .intro-content {
+    .intro[data-docking] .intro-content,
+    .intro[data-view='map'] .intro-content {
         transform: translateY(24px);
     }
 }
@@ -410,8 +520,13 @@
 
     .intro-role,
     .intro-actions,
-    .intro-featured {
+    .intro-featured,
+    .intro-explore {
         margin-top: 0.8rem;
+    }
+
+    .intro-explore-text span {
+        display: none;
     }
 
     .intro-btn,
@@ -428,10 +543,25 @@
 }
 
 /* Small phones held upright: the height-based name size above is meant for
-   landscape and would wrap the name here. */
+   landscape and would wrap the name here, and every line saved keeps the
+   text clear of the workstation. */
 @media (max-height: 600px) and (max-aspect-ratio: 23/20) {
     .intro-name {
         font-size: 2rem;
+    }
+
+    .intro-role {
+        font-size: 0.86rem;
+    }
+
+    .intro-featured-label {
+        display: none;
+    }
+
+    .intro-explore {
+        margin-top: 0.5rem;
+        min-height: 44px;
+        padding-block: 0.2rem;
     }
 }
 

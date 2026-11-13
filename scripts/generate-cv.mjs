@@ -16,6 +16,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { cvData } from '../src/data/cvData.js';
+import { toSemantic, wrapList } from '../src/utils/sectionHtml.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = resolve(ROOT, 'public/cv.html');
@@ -41,28 +42,11 @@ const SECTION_KEYS = new Set(SECTIONS.map(([key]) => key));
 /**
  * A clickable terminal command means nothing on a static page. When it names a
  * section that exists here, turn it into an in-page link; otherwise keep just
- * the text. Must run before the generic `</span>` → `</li>` rewrite below,
- * which would otherwise close the surrounding list item early.
+ * the text. The markup cleaner itself lives in src/utils/sectionHtml.js, shared
+ * with the landing's solar-system map.
  */
-const commandToLink = (_match, cmd, label) =>
+const commandToLink = (cmd, label) =>
   SECTION_KEYS.has(cmd) ? `<a href="#${cmd}-heading">${label}</a>` : label;
-
-/**
- * cvData values are terminal-flavoured HTML fragments. Strip the presentational
- * span wrappers so the static page can use real semantic elements, and drop the
- * duplicated section title (the <h2> already says it).
- */
-const toSemantic = (html) =>
-  html
-    .replace(/<span class="command-highlight" data-cmd="([^"]*)">([\s\S]*?)<\/span>/g, commandToLink)
-    .replace(/<span class="section-title">[\s\S]*?<\/span>/g, '')
-    .replace(/<span class="list-item">/g, '<li>')
-    .replace(/<\/span>/g, '</li>')
-    .replace(/&nbsp;/g, ' ')
-    .trim();
-
-const wrapList = (html) =>
-  html.includes('<li>') ? `<ul>${html}</ul>` : html.split('\n').filter(Boolean).map((l) => `<p>${l}</p>`).join('\n');
 
 const sectionHtml = ([key, title]) => {
   const raw = cvData[key];
@@ -70,7 +54,7 @@ const sectionHtml = ([key, title]) => {
   const id = key;
   return `      <section aria-labelledby="${id}-heading">
         <h2 id="${id}-heading">${title}</h2>
-        ${wrapList(toSemantic(raw))}
+        ${wrapList(toSemantic(raw, { command: commandToLink }))}
       </section>`;
 };
 

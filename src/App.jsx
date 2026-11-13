@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import Terminal from './components/Terminal';
 import CssFallback from './components/CssFallback';
 import Landing from './intro/Landing';
-import { DOCKED_SESSION_KEY, getIntroMode, shouldShowIntro } from './intro/introState';
+import { DOCKED_SESSION_KEY, shouldShowIntro } from './intro/introState';
+import { getIntroMode, getSceneQuality, SCENE_FALLBACK_KEY } from './intro/scenePolicy';
 import { resolveDeepLink } from './commands/deepLink';
 import { getDeviceTier } from './utils/deviceTier';
 import { readStorage, removeStorage, writeStorage } from './utils/storage';
@@ -28,6 +29,10 @@ const VEIL_OUT_MS = 450;
 
 /** While the landing is up, wait this long before fetching the terminal's hero photo. */
 const HERO_PREWARM_MS = 2500;
+
+/** How much 3D the landing gets; a scene that gave up in this tab stays a still image. */
+const readIntroMode = (tier) =>
+  getIntroMode(tier, { hasFailed: readStorage('sessionStorage', SCENE_FALLBACK_KEY) === 'true' });
 
 /**
  * Where a visit starts: in orbit (the landing) or docked (the terminal), and
@@ -58,7 +63,11 @@ function App() {
   const [veil, setVeil] = useState(null);
   const veilTimer = useRef(0);
 
-  const introMode = getIntroMode(tier);
+  // The live scene gave up in this tab before (too slow): go straight to the
+  // still image. Read again on every return to the landing, since the scene
+  // can give up after this component mounted.
+  const [introMode, setIntroMode] = useState(() => readIntroMode(tier));
+  const sceneQuality = getSceneQuality(tier);
   const isAnimated = introMode !== 'static';
   const isDocked = session.view === 'terminal';
 
@@ -104,6 +113,7 @@ function App() {
     removeStorage('sessionStorage', DOCKED_SESSION_KEY);
     const showOrbit = () => {
       setOverlayActive(false);
+      setIntroMode(readIntroMode(tier));
       setSession({ view: 'orbit', command: null });
     };
     window.clearTimeout(veilTimer.current);
@@ -124,7 +134,7 @@ function App() {
       setVeil('out');
       veilTimer.current = window.setTimeout(() => setVeil(null), VEIL_OUT_MS);
     }, VEIL_IN_MS);
-  }, [isAnimated]);
+  }, [isAnimated, tier]);
 
   const lowPower = tier === 'low';
 
@@ -183,7 +193,7 @@ function App() {
           </a>
         </>
       ) : (
-        <Landing mode={introMode} onDock={handleDock} />
+        <Landing mode={introMode} quality={sceneQuality} onDock={handleDock} />
       )}
 
       {veil && <div className={`dock-veil dock-veil--${veil}`} aria-hidden="true" />}
