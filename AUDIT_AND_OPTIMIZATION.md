@@ -1156,3 +1156,66 @@ was not run.
   linked from job applications. Left in place; the owner's call.
 - Vercel's failed-deployment e-mail notifications should be switched on, and a
   spend cap set in the xAI console (the rate limiter is per-instance only).
+
+---
+
+# Addendum — Orbit landing v2: the solar system, 2026-11-13
+
+The landing was one shot: a computer, a planet, and a single move into the
+monitor. Version 2 keeps that shot exactly (the poster is still a render of
+the scene at t = 0) and builds more around it:
+
+- **A richer home view.** The Earth gets city lights on the night side,
+  domain-warped procedural clouds, sun glint and a warmer terminator; the Moon
+  and a baked Milky Way fill the sky; the satellite sweeps a Sentinel-1-style
+  radar beam across the globe and is clickable (FloodFusion). Drag to look.
+  Glow (bloom) on desktop only.
+- **An explorable solar system.** One continuous camera move pulls back from
+  the workstation to the Sun and the eight planets, built around the existing
+  scene at compressed scale. Each body is a stop holding CV sections in an
+  HTML panel (text from `cvData` through the same cleaner as `/cv`), with
+  **Open in terminal**. Keyboard and touch both work.
+- **Live 3D on phones,** on a lighter quality rung, with a frame-time check
+  that steps down and finally falls back to the poster for the session.
+- `orbitScene.js` went from one 683-line file to an entry point plus ten
+  modules under `src/intro/scene/`.
+
+| | Before (`40fa7be`) | After |
+|---|---|---|
+| Entry JS (gzip) | 42.3 kB | 43.7 kB |
+| Scene code (gzip) | 5.2 kB | 16.4 kB (+ 4.7 kB glow chunk, desktop only; + 4.9 kB map UI, prefetched once live) |
+| `three` (gzip) | 132.8 kB, desktop only | 135.6 kB, after first contentful paint, desktop and capable phones |
+| Textures, desktop | 343 kB | 391 kB (Earth day 4k, night lights 2k, Moon) |
+| Phone total (JS + textures) | 0 (poster only) | 277 kB (target was ≤ 280 kB) |
+| Posters (AVIF) | 27 / 44 kB | 33 / 34 kB |
+| WebGL contexts | 1 at any time | 1 at any time |
+
+Verified against the production build served with the `vercel.json` headers.
+This time the frame rate was measured on a real GPU (Intel Arc, Meteor Lake,
+through headless Chromium with ANGLE), not only in software:
+
+- 60 fps (16.7 ms median frame) at 1440×900 on the home view and the map,
+  and at 390×844 and 768×1024 on the lite rung.
+- Software rendering at phone resolution (SwiftShader, 390×844 at 3× DPR,
+  unthrottled and with the CPU throttled 6× and 12×) falls back to the
+  poster within about 2.5 s of the scene going live, docking still works,
+  and the landing stays a still image after `exit`. Testing this found two
+  real bugs in the check: it ended after 1.5 s whatever it had collected,
+  and called "too few frames" (and discarded any frame over 1 s) a pass, so
+  the slowest devices, and janky ones, kept the live scene. It now samples
+  until it has six frames (at most 6 s) and counts long frames as evidence.
+  A tab hidden mid-check used to end the check too; it now starts over.
+- All nine stops open with content; **Open in terminal** from Mars runs
+  `projects`; the satellite runs `floodfusion`; ten full rounds of
+  home → map → stop → terminal → `exit` with one canvas at most, no console
+  errors or warnings, no CSP violations.
+- `three` starts after first contentful paint (~115 ms later); the glow chunk
+  is never requested with phone emulation; reduced motion loads no 3D and
+  shows no map control; `?cmd=` links still skip the landing.
+- Layout with a panel open at 320×568, 390×844, 768×1024, 1024×768,
+  1440×900, 1920×1080 and 844×390: nothing clipped, no horizontal scroll,
+  every control at least 44 px tall.
+
+**Not verified:** real phones (iOS Safari in particular), desktop Safari and
+Firefox, and Core Web Vitals in the field. Lighthouse was not run. The
+frame-time check is the safety net for hardware nobody here has tested.

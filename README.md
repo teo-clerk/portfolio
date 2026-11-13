@@ -8,9 +8,10 @@ Live at **[teoclerici.com](https://teoclerici.com)**.
 
 ### 🛰️ Orbit Front Door
 A first visit opens on a landing page: a retro workstation floating above the Earth, with the name, a one-line role and four plain buttons (**Enter terminal**, **60-second summary**, **Read the CV**, **Download PDF**). Nobody has to type a command to reach the content.
-- **Desktop**: a live [Three.js](https://threejs.org/) scene. Pressing **Enter** (or clicking the monitor) flies the camera into the screen while the boot log types out, and the terminal takes over. Typing `exit` flies back out.
-- **Phones and modest hardware**: a still render of the same scene with a CSS zoom. No WebGL, and the 3D code is never downloaded.
-- **Reduced motion / Save-Data**: the still image and an instant cut.
+- **The scene**: a live [Three.js](https://threejs.org/) render of the Earth (day map, city lights on the night side, drifting clouds, sun glint), the Moon, the Milky Way, and a Sentinel-1-style radar satellite sweeping its beam across the globe. Drag to look around. Pressing **Enter** (or clicking the monitor) flies the camera into the screen while the boot log types out; clicking the satellite opens FloodFusion. Typing `exit` flies back out.
+- **The solar system**: **Explore the solar system** (or scrolling down) pulls the camera back in one continuous move until the Earth is a dot on its orbit. The Sun and the eight planets are stops, each holding part of the CV (Mars has the projects, Jupiter the experience, Saturn the education…) in a readable panel with **Open in terminal**. Real order, tilts and orbital-period ratios; sizes and distances are compressed and labelled "not to scale". Keyboard: Tab, Enter, ← →, Esc.
+- **Phones**: a lighter version of the live scene (no glow pass, smaller textures, 30 fps at rest). A frame-rate check in the first seconds steps quality down, and falls back to a still render of the same scene on a device that cannot keep up.
+- **Reduced motion / Save-Data / slow connections**: the still image and an instant cut; no 3D is downloaded.
 - `?cmd=…` links and sessions that already docked go straight to the terminal.
 
 ### 💻 Interactive Terminal Interface
@@ -30,11 +31,11 @@ The terminal hides numerous immersive experiences:
 - **Matrix Mode**: Type `matrix` to activate a rain overlay.
 
 ### 🌌 Animated WebGL Background
-A custom GLSL shader draws multiple waves of glowing lines that react to your cursor in real time with a radial bend effect and parallax offset. It runs on a hand-rolled **raw WebGL2 pipeline** (WebGL1 fallback, one fullscreen triangle, ~5 kB gzipped, zero runtime dependencies) — it used to be Three.js, which cost 123 kB gzipped to draw the same single triangle. Three.js is back only for the orbit scene, where it draws an actual 3D scene, in a chunk that loads after first paint on capable desktops and nowhere else. **Performance optimized** with lazy loading, adaptive resolution, context-loss recovery and device-aware quality scaling.
+A custom GLSL shader draws multiple waves of glowing lines that react to your cursor in real time with a radial bend effect and parallax offset. It runs on a hand-rolled **raw WebGL2 pipeline** (WebGL1 fallback, one fullscreen triangle, ~5 kB gzipped, zero runtime dependencies) — it used to be Three.js, which cost 123 kB gzipped to draw the same single triangle. Three.js is back only for the orbit scene, where it draws an actual 3D scene, in a chunk that loads after first paint and never on the critical path. **Performance optimized** with lazy loading, adaptive resolution, context-loss recovery and device-aware quality scaling.
 
 ### 📱 Performance & Compatibility
 - **Vercel Integration**: Optimized with **Vercel Analytics** and **Speed Insights**.
-- **Lazy Loading**: The WebGL background and heavy mini-games are deferred until needed, ensuring a lightning-fast First Contentful Paint. The critical path is ~104 kB of gzipped JS; the orbit scene adds ~138 kB (three + scene) and a 343 kB Earth texture on capable desktops only, after first paint.
+- **Lazy Loading**: The WebGL background and heavy mini-games are deferred until needed, ensuring a lightning-fast First Contentful Paint. The critical path is ~106 kB of gzipped JS. After first paint the orbit scene adds ~152 kB (three + scene) plus ~390 kB of textures on desktops (~125 kB on phones); the glow pass (5 kB) loads on desktops only.
 - **Responsive**: Adapts ASCII art, blend modes, and interaction models for mobile vs. desktop transparency.
 
 ## 🛠️ Tech Stack
@@ -42,7 +43,7 @@ A custom GLSL shader draws multiple waves of glowing lines that react to your cu
 - **Framework**: [React 19](https://react.dev/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Background shader**: Raw WebGL2 (GLSL ES 1.00 source, WebGL1 fallback), no runtime dependency
-- **Orbit scene**: [Three.js](https://threejs.org/), plain (no React Three Fiber), lazy-loaded; Earth texture is NASA's Blue Marble (public domain)
+- **Orbit scene**: [Three.js](https://threejs.org/), plain (no React Three Fiber), lazy-loaded; custom GLSL for the Earth, planets, Sun and sky; NASA Blue Marble, Black Marble and LRO maps (public domain, see `src/intro/assets/CREDITS.md`)
 - **Tests**: [Vitest](https://vitest.dev/)
 - **Analytics**: Vercel Analytics & Speed Insights
 - **AI**: Grok/Custom API integration
@@ -77,11 +78,15 @@ The landing's still images and the social card are renders of the real scene. Af
 ```text
 src/
 ├── intro/                # Orbit front door
-│   ├── Landing.jsx       # The landing page (HTML) and the dock sequence
-│   ├── orbitScene.js     # Three.js scene; the only file that imports three
+│   ├── Landing.jsx       # The landing page (HTML), dock sequence, map state
+│   ├── SolarMap.jsx      # The solar-system map's HTML: strip, labels, panels (lazy)
+│   ├── orbitScene.js     # Scene entry point: renderer, loop, input, flights, API
+│   ├── scene/            # Earth, sky, workstation, satellite, planets, camera, glow
 │   ├── useOrbitScene.js  # Loads the scene after first paint, owns its lifecycle
-│   ├── introState.js     # Pure decisions (show landing? which mode? poster zoom)
-│   └── assets/           # Posters rendered from the scene, Earth texture
+│   ├── stops.js          # The nine stops: bodies, orbits and the CV sections they hold
+│   ├── scenePolicy.js    # Pure: live scene or still image, quality ladder, frame check
+│   ├── introState.js     # Pure: show the landing? poster zoom maths
+│   └── assets/           # Posters rendered from the scene, NASA maps (CREDITS.md)
 ├── commands/             # Command registry: one module per category
 ├── components/
 │   ├── Terminal.jsx      # Terminal UI
@@ -94,7 +99,7 @@ src/
 │   ├── useTerminal.js    # Command engine & sound dispatcher
 │   └── useTypewriter.js  # Text animation engine
 ├── services/             # AI (`ask`) and weather
-├── utils/                # escapeHtml, calc parser, themes, device tier, storage
+├── utils/                # escapeHtml, calc parser, themes, device tier, storage, sectionHtml
 └── App.jsx               # Orbit ↔ terminal switching, background, analytics
 api/ask.js                # Serverless proxy for the AI assistant
 scripts/                  # Build gates, /cv page generator, poster renderer
